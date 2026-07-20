@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --las-bg: #faf9f7;
+  --las-cream: #f3f0eb;
+  --las-dark: #1a1a1a;
+  --las-primary: #003b49;
+  --las-primary-hover: #00566a;
+  --las-accent: #c68e65;
+  --las-accent-hover: #b07d58;
+  --las-muted: #6b7280;
+  --las-border: rgba(0, 0, 0, 0.08);
+}
+
+@theme inline {
+  --color-las-bg: var(--las-bg);
+  --color-las-cream: var(--las-cream);
+  --color-las-dark: var(--las-dark);
+  --color-las-primary: var(--las-primary);
+  --color-las-primary-hover: var(--las-primary-hover);
+  --color-las-accent: var(--las-accent);
+  --color-las-accent-hover: var(--las-accent-hover);
+  --color-las-muted: var(--las-muted);
+  --color-las-border: var(--las-border);
+  --font-sans: var(--font-arabic), "Segoe UI", Tahoma, Arial, sans-serif;
+  --shadow-las: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background-color: var(--las-bg);
+  color: var(--las-primary);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

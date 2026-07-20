@@ -1,0 +1,86 @@
+<!--
+  LAS Store link box — for lascafe.sa (Elementor HTML widget or TaraTech)
+
+  BEFORE USE: Replace STORE_URL with your deployed store link, e.g.:
+  https://store.lascafe.sa
+-->
+<a
+  class="las-store-box"
+  href="STORE_URL"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="متجر لاس — LAS Store"
+>
+  <div class="las-store-box__inner">
+    <p class="las-store-box__kicker">Taste Your Feeling</p>
+    <h2 class="las-store-box__title">متجر لاس | LAS Store</h2>
+    <p class="las-store-box__desc">
+      منتجات لاس — مق، محاصيل مختصة، والمزيد. اطلب عبر واتساب.
+    </p>
+    <span class="las-store-box__btn">تسوّق الآن — Shop Now</span>
+  </div>
+</a>
+
+<style>
+  .las-store-box {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .las-store-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22);
+  }
+
+  .las-store-box__inner {
+    padding: 1.75rem 1.5rem;
+    text-align: center;
+  }
+
+  .las-store-box__kicker {
+    margin: 0 0 0.35rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    color: rgba(198, 142, 101, 0.95);
+    font-style: italic;
+  }
+
+  .las-store-box__title {
+    margin: 0 0 0.75rem;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .las-store-box__desc {
+    margin: 0 0 1.25rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .las-store-box__btn {
+    display: inline-block;
+    padding: 0.65rem 1.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(198, 142, 101, 0.45);
+    background: rgba(198, 142, 101, 0.18);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .las-store-box:hover .las-store-box__btn {
+    background: rgba(198, 142, 101, 0.38);
+  }
+</style>

@@ -1,0 +1,17 @@
+متجر لاس | LAS Store
+─────────────────────
+
+Arabic title:  متجر لاس
+English title: LAS Store
+
+Button text:  تسوّق الآن — Shop Now
+
+Short description (optional):
+منتجات لاس — مق، محاصيل مختصة. اطلب عبر واتساب.
+
+Link URL:  [PUT STORE URL HERE — e.g. https://store.lascafe.sa]
+
+Layout: Same as Bonat and Catering boxes on homepage (blur card + button).
+Place: Next to Bonat and Catering in the links section.
+
+Open link: New tab recommended (target="_blank")
