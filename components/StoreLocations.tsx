@@ -24,14 +24,12 @@ export function StoreLocations() {
         </div>
 
         <div className="mt-10 text-center">
-          <a
-            href={`https://wa.me/${STORE_CONFIG.whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/products"
             className="inline-flex items-center justify-center rounded-sm bg-las-accent px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-las-accent-hover"
           >
-            استفسر عن الفرع الأقرب
-          </a>
+            تسوّق من المتجر
+          </Link>
         </div>
       </div>
     </section>
@@ -44,9 +42,9 @@ export function OrderSteps() {
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-3">
           {[
-            { step: "01", title: "تصفّح المنتجات", desc: "اختر من القهوة والهدايا والأكواب" },
-            { step: "02", title: "اضغط اطلب", desc: "رسالة واتساب جاهزة باسم المنتج والسعر" },
-            { step: "03", title: "استلم طلبك", desc: "فريق لاس يؤكد ويرتّب الاستلام أو التوصيل" },
+            { step: "01", title: "تصفّح وأضف للسلة", desc: "اختر المنتجات واللون المناسب" },
+            { step: "02", title: "أكمل الطلب والدفع", desc: "عبر الموقع — بياناتك وطريقة الاستلام" },
+            { step: "03", title: "متابعة عبر واتساب", desc: "تأكيد المحتوى، التوصيل، والملاحظات" },
           ].map((item) => (
             <div key={item.step} className="text-center sm:text-right">
               <span className="text-3xl font-bold text-las-accent/40">{item.step}</span>

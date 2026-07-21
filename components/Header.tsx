@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { CATEGORIES, STORE_CONFIG } from "@/lib/config";
+import { CartLink } from "./CartLink";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
@@ -58,14 +61,7 @@ export function Header() {
           >
             lascafe.sa
           </a>
-          <a
-            href={`https://wa.me/${STORE_CONFIG.whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-sm bg-las-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-las-primary-hover"
-          >
-            واتساب
-          </a>
+          <CartLink />
         </div>
       </div>
     </header>

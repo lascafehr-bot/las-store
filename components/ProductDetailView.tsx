@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatPrice } from "@/lib/config";
 import type { Product } from "@/lib/products";
 
@@ -102,12 +102,14 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           </div>
         )}
 
-        <WhatsAppButton
-          productName={product.name}
+        <AddToCartButton
+          slug={product.slug}
+          name={product.name}
           price={product.price}
+          image={activeImage}
           color={selectedColor?.label}
-          className="w-full rounded-sm sm:w-fit"
-          label="اطلب عبر واتساب"
+          className="w-full sm:w-fit sm:px-10"
+          label="أضف إلى السلة"
         />
 
         {product.specs && product.specs.length > 0 && (
@@ -127,9 +129,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
         )}
 
         <div className="border border-las-border bg-las-cream/50 p-5 text-sm text-las-muted">
-          <p className="font-semibold text-las-primary">الطلب عبر واتساب</p>
+          <p className="font-semibold text-las-primary">الطلب عبر الموقع</p>
           <p className="mt-1 leading-relaxed">
-            فريق لاس يرد عليك لتأكيد التوفر والاستلام من أقرب فرع أو التوصيل.
+            أضف للسلة وأكمل الطلب والدفع هنا. واتساب متاح بعد التأكيد للمتابعة فقط.
           </p>
         </div>
       </div>

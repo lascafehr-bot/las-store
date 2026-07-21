@@ -1,8 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatPrice } from "@/lib/config";
 import type { Product } from "@/lib/products";
-import { buildOrderMessage, buildWhatsAppUrl } from "@/lib/config";
 
 type ProductCardProps = {
   product: Product;
@@ -10,8 +12,6 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, variant = "default" }: ProductCardProps) {
-  const orderUrl = buildWhatsAppUrl(buildOrderMessage(product.name, product.price));
-
   return (
     <article className="group flex flex-col bg-white">
       <Link
@@ -47,14 +47,21 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
 
         <div className="mt-auto pt-2">
           <p className="mb-3 text-base font-bold text-las-primary">{formatPrice(product.price)}</p>
-          <a
-            href={orderUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center rounded-sm border border-las-primary py-2.5 text-xs font-semibold text-las-primary transition-colors hover:bg-las-primary hover:text-white sm:text-sm"
-          >
-            اطلب عبر واتساب
-          </a>
+          {product.colors && product.colors.length > 0 ? (
+            <Link
+              href={`/products/${product.slug}`}
+              className="flex w-full items-center justify-center rounded-sm border border-las-primary py-2.5 text-xs font-semibold text-las-primary transition-colors hover:bg-las-primary hover:text-white sm:text-sm"
+            >
+              اختر اللون
+            </Link>
+          ) : (
+            <AddToCartButton
+              slug={product.slug}
+              name={product.name}
+              price={product.price}
+              image={product.image}
+            />
+          )}
         </div>
       </div>
     </article>

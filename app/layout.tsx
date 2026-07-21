@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Arabic } from "next/font/google";
+import { CartProvider } from "@/components/CartProvider";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { PromoBanner } from "@/components/PromoBanner";
@@ -38,10 +39,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${notoArabic.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-las-bg font-sans text-las-primary antialiased">
-        <PromoBanner />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <CartProvider>
+          <PromoBanner />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );
