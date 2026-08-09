@@ -35,10 +35,8 @@ export function AddToCartButton({
     <button
       type="button"
       onClick={handleClick}
-      className={`flex items-center justify-center rounded-sm border border-las-primary py-2.5 text-xs font-semibold transition-colors sm:text-sm ${
-        added
-          ? "bg-las-primary text-white"
-          : "text-las-primary hover:bg-las-primary hover:text-white"
+      className={`flex w-full items-center justify-center py-2.5 text-xs font-medium transition-colors sm:text-sm ${
+        added ? "text-las-accent" : "text-las-muted hover:text-las-accent"
       } ${className}`}
     >
       {added ? "✓ تمت الإضافة" : label}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>LAS CAFE — Digital Projects Roadmap</title>
+  <style>
+    @page { margin: 2cm; size: A4; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      line-height: 1.6;
+      color: #003b49;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      background: #fff;
+    }
+    h1 { font-size: 1.75rem; border-bottom: 3px solid #c68e65; padding-bottom: 8px; }
+    h2 { font-size: 1.25rem; color: #003b49; margin-top: 2rem; page-break-after: avoid; }
+    h3 { font-size: 1rem; color: #c68e65; margin-top: 1.25rem; }
+    p, li { font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+    th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: right; }
+    th { background: #003b49; color: #fff; }
+    tr:nth-child(even) { background: #f7f7f7; }
+    .meta { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
+    pre {
+      background: #f3f0eb;
+      padding: 16px;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+    }
+    .highlight { background: #fff8f0; border-right: 4px solid #c68e65; padding: 12px 16px; margin: 1rem 0; }
+    .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 0.8rem; color: #666; text-align: center; }
+    ul { padding-right: 1.25rem; }
+    @media print {
+      body { padding: 0; }
+      h2 { page-break-before: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>LAS CAFE — خطة المشاريع الرقمية</h1>
+  <p class="meta"><strong>Digital Projects Roadmap</strong> · August 2026 · Internal planning document</p>
+
+  <div class="highlight">
+    <strong>الفكرة الأساسية:</strong> موقع رئيسي واحد (بأسلوب Brew 92) يربط ثلاثة أنظمة: المتجر، الحجز، الكيترنق — بالإضافة إلى بوابة الموظفين (منفصلة).
+  </div>
+
+  <h2>1. نظرة عامة — Overview</h2>
+  <table>
+    <tr><th>#</th><th>المشروع</th><th>الرابط الم planned</th><th>الترتيب</th></tr>
+    <tr><td>1</td><td>الموقع الرئيسي — Main website</td><td>lascafe.sa</td><td><strong>ابدأ هنا</strong></td></tr>
+    <tr><td>2</td><td>متجر لاس — LAS Store</td><td>store.lascafe.sa</td><td>ثاني</td></tr>
+    <tr><td>3</td><td>حجز الطاولات — Table booking</td><td>booking.lascafe.sa</td><td>ثالث</td></tr>
+    <tr><td>4</td><td>الكيترنق والمناسبات — Catering</td><td>catering.lascafe.sa</td><td>رابع</td></tr>
+    <tr><td>—</td><td>بوابة الموظفين (داخلي)</td><td>portal.lascafe.sa</td><td>منفصل — موجود</td></tr>
+  </table>
+  <p><strong>مرجع التصميم:</strong> brew92.com · <strong>الحجز الحالي (مؤقت):</strong> lascafe.bookatables.com</p>
+
+  <h2>2. الهيكلة — Architecture</h2>
+  <pre>
+              ┌─────────────────────────┐
+              │   MAIN WEBSITE (NEW)    │
+              │      lascafe.sa         │
+              │   Brew 92–style brand   │
+              └───────────┬─────────────┘
+                          │
+        ┌─────────────────┼─────────────────┐
+        ▼                 ▼                 ▼
+ ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+ │  LAS STORE  │   │   BOOKING   │   │  CATERING   │
+ │   متجر لاس   │   │    الحجز    │   │  الكيترنق   │
+ └─────────────┘   └─────────────┘   └─────────────┘
+
+ ┌─────────────┐
+ │  EMPLOYEE   │  ← Internal only
+ │   PORTAL    │
+ └─────────────┘
+  </pre>
+
+  <h2>3. المجلدات — Folders & repos</h2>
+  <table>
+    <tr><th>المشروع</th><th>المجلد</th><th>ملاحظات</th></tr>
+    <tr><td>Main website</td><td>las-main</td><td>إنشاء جديد</td></tr>
+    <tr><td>LAS Store</td><td>lass</td><td>Demo على Netlify</td></tr>
+    <tr><td>Table booking</td><td>las-booking</td><td>إنشاء لاحقاً</td></tr>
+    <tr><td>Catering</td><td>las-catering</td><td>إنشاء لاحقاً</td></tr>
+    <tr><td>Employee portal</td><td>las-website</td><td>موجود — لا دمج</td></tr>
+  </table>
+  <p>استخدم <strong>محادثة Cursor جديدة</strong> لكل مشروع.</p>
+
+  <h2>4. المرحلة 1 — الموقع الرئيسي (ابدأ الآن)</h2>
+  <p><strong>الهدف:</strong> موقع شركة جديد مثل Brew 92 مع روابط للمتجر والحجز والكيترنق.</p>
+  <h3>الخطوات:</h3>
+  <ol>
+    <li>إنشاء مجلد: <code>las-main</code></li>
+    <li>فتح المجلد في Cursor — محادثة جديدة</li>
+    <li>دراسة Brew 92: التخطيط، القائمة، الصفحة الرئيسية، الفروع</li>
+    <li>خريطة الموقع: الرئيسية، من نحن، الفروع، 3 صناديق روابط</li>
+    <li>البناء بـ Next.js + ألوان LAS (#003b49, #c68e65)</li>
+    <li>النشر على lascafe.sa</li>
+  </ol>
+  <p><strong>المخرج:</strong> موقع رئيسي حي مع 3 نقاط دخول واضحة.</p>
+
+  <h2>5. المرحلة 2 — متجر لاس</h2>
+  <p><strong>الهدف:</strong> متجر إنتاج متوافق مع الموقع الرئيسي — الطلب والدفع عبر الموقع، واتساب للمتابعة فقط.</p>
+  <h3>الخطوات:</h3>
+  <ol>
+    <li>إعادة تصميم <code>lass</code> ليطابق الموقع الرئيسي</li>
+    <li>ربط بوابة الدفع (Moyasar / Tap)</li>
+    <li>حفظ الطلبات (Supabase)</li>
+    <li>النشر على store.lascafe.sa</li>
+  </ol>
+
+  <h2>6. المرحلة 3 — حجز الطاولات</h2>
+  <p><strong>الهدف:</strong> تطوير نظام حجز خاص (بديل Bookatables).</p>
+  <ol>
+    <li>تحديد المتطلبات: الفروع، عدد الأشخاص، التاريخ، التأكيد</li>
+    <li>إنشاء <code>las-booking</code></li>
+    <li>البناء والنشر وربطه بالموقع الرئيسي</li>
+  </ol>
+
+  <h2>7. المرحلة 4 — الكيترنق والمناسبات</h2>
+  <p><strong>الهدف:</strong> موقع للمناسبات والكيترنق — قائمة، نموذج طلب، متابعة.</p>
+  <ol>
+    <li>تحديد النطاق مع LAS</li>
+    <li>إنشاء <code>las-catering</code></li>
+    <li>البناء والنشر وربطه بالموقع الرئيسي</li>
+  </ol>
+
+  <h2>8. ترتيب العمل — Summary</h2>
+  <pre>
+1. Main website (Brew 92)     ← START HERE
+2. LAS Store (payment + design)
+3. Table booking
+4. Catering & events
+  </pre>
+
+  <h2>9. ماذا لا تفعل</h2>
+  <ul>
+    <li>لا تدمج كل المواقع في مشروع واحد</li>
+    <li>لا تربط بوابة الموظفين بالموقع العام</li>
+    <li>لا تعتبر demo المتجر نسخة نهائية</li>
+    <li>لا تبدأ المتجر قبل وضوح تصميم الموقع الرئيسي</li>
+  </ul>
+
+  <h2>10. الخطوة التالية — Next action</h2>
+  <div class="highlight">
+    <ol>
+      <li>إنشاء مجلد <strong>las-main</strong></li>
+      <li>محادثة Cursor جديدة</li>
+      <li>بدء الموقع الرئيسي مع Brew 92 كمرجع</li>
+      <li>تخطيط 3 روابط: Store · Booking · Catering</li>
+    </ol>
+  </div>
+
+  <p class="footer">LAS CAFE — Digital Roadmap · August 2026 · Prepared for internal planning</p>
+
+</body>
+</html>

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --las-bg: #faf9f7;
-  --las-cream: #f3f0eb;
+  --las-bg: #f8f6f3;
+  --las-cream: #f0ece6;
   --las-dark: #1a1a1a;
-  --las-primary: #003b49;
-  --las-primary-hover: #00566a;
-  --las-accent: #c68e65;
-  --las-accent-hover: #b07d58;
-  --las-muted: #6b7280;
-  --las-border: rgba(0, 0, 0, 0.08);
+  --las-primary: #1c1c1c;
+  --las-primary-hover: #333333;
+  --las-accent: #b8956b;
+  --las-accent-hover: #a6845d;
+  --las-muted: #8a8580;
+  --las-border: rgba(0, 0, 0, 0.06);
 }
 
 @theme inline {
@@ -23,7 +23,7 @@
   --color-las-muted: var(--las-muted);
   --color-las-border: var(--las-border);
   --font-sans: var(--font-arabic), "Segoe UI", Tahoma, Arial, sans-serif;
-  --shadow-las: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --shadow-las: 0 8px 32px rgba(0, 0, 0, 0.04);
 }
 
 body {
