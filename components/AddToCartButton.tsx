@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/components/CartProvider";
+import { useLocale } from "@/components/LocaleProvider";
 
 type AddToCartButtonProps = {
   slug: string;
@@ -9,6 +10,7 @@ type AddToCartButtonProps = {
   price: number;
   image: string;
   color?: string;
+  weight?: string;
   className?: string;
   label?: string;
 };
@@ -19,14 +21,17 @@ export function AddToCartButton({
   price,
   image,
   color,
+  weight,
   className = "",
-  label = "أضف إلى السلة",
+  label,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
+  const { t } = useLocale();
   const [added, setAdded] = useState(false);
+  const buttonLabel = label ?? t("addToCart");
 
   function handleClick() {
-    addItem({ slug, name, price, image, color });
+    addItem({ slug, name, price, image, color, weight });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -35,11 +40,9 @@ export function AddToCartButton({
     <button
       type="button"
       onClick={handleClick}
-      className={`flex w-full items-center justify-center py-2.5 text-xs font-medium transition-colors sm:text-sm ${
-        added ? "text-las-accent" : "text-las-muted hover:text-las-accent"
-      } ${className}`}
+      className={`flex w-full items-center justify-center transition-colors ${className}`}
     >
-      {added ? "✓ تمت الإضافة" : label}
+      {added ? t("addedToCart") : buttonLabel}
     </button>
   );
 }

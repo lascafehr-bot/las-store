@@ -6,8 +6,10 @@ export const STORE_CONFIG = {
   companyName: "LAS CAFE",
   phone: "+966566659710",
   whatsapp: "966566659710",
+  storeWhatsapp: "", // public store WhatsApp — not ready yet
   email: "lascafehr@gmail.com",
-  instagram: "https://instagram.com/lascafe.sa",
+  instagram: "https://www.instagram.com/las_cafe0",
+  tiktok: "https://www.tiktok.com/@las_cafe",
   websiteUrl: "https://lascafe.sa",
   storeUrl: "https://shop.lascafe.sa",
   b2b: {
@@ -17,8 +19,8 @@ export const STORE_CONFIG = {
     catalogPdf: "/downloads/wholesale-catalog.pdf",
   },
   compliance: {
-    commercialRegister: "—", // TODO: from LAS team
-    vatNumber: "—", // TODO: from LAS team
+    commercialRegister: "7012799859",
+    vatNumber: "312699743300003",
   },
   analyticsId: "", // TODO: G-XXXXXXXXXX
   branches: [
@@ -33,50 +35,57 @@ export type CategoryId = "coffee" | "merch" | "bundles";
 export const CATEGORIES: {
   id: CategoryId;
   label: string;
-  pillLabel: string;
   labelEn: string;
+  pillLabel: string;
+  pillLabelEn: string;
   description: string;
 }[] = [
   {
     id: "coffee",
     label: "محاصيل",
-    pillLabel: "قهوة",
     labelEn: "Coffee",
+    pillLabel: "محاصيل",
+    pillLabelEn: "Coffee",
     description: "حبوب وأرباع",
   },
   {
     id: "merch",
-    label: "منتجات",
+    label: "منتجات لاس",
+    labelEn: "LAS Products",
     pillLabel: "منتجات لاس",
-    labelEn: "Merch",
+    pillLabelEn: "LAS Products",
     description: "أكواب وإكسسوارات",
   },
   {
     id: "bundles",
     label: "بوكسات العروض",
-    pillLabel: "بوكسات",
     labelEn: "Bundles",
+    pillLabel: "بوكسات",
+    pillLabelEn: "Bundles",
     description: "باقات جاهزة",
   },
 ];
 
 export const POLICIES = {
   shipping: {
-    title: "سياسة الشحن",
+    title: "سياسة الشحن والتوصيل",
+    titleEn: "Shipping & Delivery Policy",
     slug: "shipping",
   },
   returns: {
-    title: "سياسة الاستبدال والارجاع",
+    title: "سياسة الاستبدال والاسترجاع",
+    titleEn: "Returns & Exchange Policy",
     slug: "returns",
   },
   privacy: {
     title: "سياسة الخصوصية",
+    titleEn: "Privacy Policy",
     slug: "privacy",
   },
 } as const;
 
 export function formatPrice(sar: number): string {
-  return `${sar.toLocaleString("ar-SA")} ر.س`;
+  return `${sar.toLocaleString("en-US")} ر.س`;
 }
 
 export function buildWhatsAppUrl(message: string): string {

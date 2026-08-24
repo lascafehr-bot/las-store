@@ -51,8 +51,9 @@ export function readLastOrder(): Order | null {
 export function buildFollowUpWhatsAppMessage(order: Order): string {
   const itemsList = order.items
     .map((item) => {
-      const color = item.color ? ` (${item.color})` : "";
-      return `• ${item.name}${color} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`;
+      const extras = [item.color, item.weight].filter(Boolean).join(" · ");
+      const extra = extras ? ` (${extras})` : "";
+      return `• ${item.name}${extra} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`;
     })
     .join("\n");
 

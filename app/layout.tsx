@@ -1,10 +1,10 @@
 import Script from "next/script";
 import type { Metadata } from "next";
-import { Noto_Sans_Arabic } from "next/font/google";
+import { Noto_Sans_Arabic, Cormorant_Garamond } from "next/font/google";
+import { LocaleProvider } from "@/components/LocaleProvider";
 import { CartProvider } from "@/components/CartProvider";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { StoreTagline } from "@/components/StoreTagline";
 import { STORE_CONFIG } from "@/lib/config";
 import "./globals.css";
 
@@ -12,6 +12,12 @@ const notoArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-arabic",
+});
+
+const lasBrand = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-las-brand",
 });
 
 export const metadata: Metadata = {
@@ -40,7 +46,7 @@ export default function RootLayout({
   const gaId = STORE_CONFIG.analyticsId;
 
   return (
-    <html lang="ar" dir="rtl" className={`${notoArabic.variable} h-full`}>
+    <html lang="ar" dir="rtl" className={`${notoArabic.variable} ${lasBrand.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-las-bg font-sans text-las-primary antialiased">
         {gaId && (
           <>
@@ -50,12 +56,13 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        <CartProvider>
-          <Header />
-          <StoreTagline />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </CartProvider>
+        <LocaleProvider>
+          <CartProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </CartProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

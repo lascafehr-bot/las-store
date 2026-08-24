@@ -47,7 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(
     (item: Omit<CartItem, "lineId" | "quantity"> & { quantity?: number }) => {
-      const lineId = getLineId(item.slug, item.color);
+      const lineId = getLineId(item);
       const qty = item.quantity ?? 1;
 
       setItems((current) => {
@@ -66,6 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             price: item.price,
             quantity: qty,
             color: item.color,
+            weight: item.weight,
             image: item.image,
           },
         ];

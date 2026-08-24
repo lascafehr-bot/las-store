@@ -3,21 +3,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
-import { formatPrice } from "@/lib/config";
+import { useLocale } from "@/components/LocaleProvider";
+import { formatPrice } from "@/lib/i18n";
+import { cartItemOptions } from "@/lib/cart";
 
 export function CartView() {
   const { items, total, updateQuantity, removeItem } = useCart();
+  const { locale, t } = useLocale();
 
   if (items.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-lg font-semibold text-las-primary">سلتك فارغة</p>
-        <p className="mt-2 text-sm text-las-muted">أضف منتجات من المتجر للمتابعة.</p>
+        <p className="text-lg font-semibold text-las-primary">{t("cartEmpty")}</p>
+        <p className="mt-2 text-sm text-las-muted">{t("cartEmptyDesc")}</p>
         <Link
-          href="/products"
+          href="/"
           className="mt-6 inline-flex rounded-sm bg-las-primary px-6 py-3 text-sm font-semibold text-white hover:bg-las-primary-hover"
         >
-          تصفّح المنتجات
+          {t("browseProducts")}
         </Link>
       </div>
     );
@@ -40,14 +43,16 @@ export function CartView() {
                   <Link href={`/products/${item.slug}`} className="font-semibold text-las-primary hover:text-las-accent">
                     {item.name}
                   </Link>
-                  {item.color && <p className="mt-1 text-xs text-las-muted">اللون: {item.color}</p>}
+                  {cartItemOptions(item) && (
+                    <p className="mt-1 text-xs text-las-muted">{cartItemOptions(item)}</p>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={() => removeItem(item.lineId)}
                   className="text-xs text-las-muted hover:text-red-600"
                 >
-                  حذف
+                  {t("remove")}
                 </button>
               </div>
               <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
@@ -59,7 +64,7 @@ export function CartView() {
                   >
                     −
                   </button>
-                  <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                  <span lang="en" dir="ltr" className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.lineId, item.quantity + 1)}
@@ -68,7 +73,7 @@ export function CartView() {
                     +
                   </button>
                 </div>
-                <p className="font-bold text-las-primary">{formatPrice(item.price * item.quantity)}</p>
+                <p className="font-bold text-las-primary">{formatPrice(item.price * item.quantity, locale)}</p>
               </div>
             </div>
           </article>
@@ -76,21 +81,36 @@ export function CartView() {
       </div>
 
       <aside className="h-fit border border-las-border bg-las-cream/50 p-6">
-        <h2 className="mb-4 text-lg font-bold text-las-primary">ملخص الطلب</h2>
+        <h2 className="mb-4 text-lg font-bold text-las-primary">{t("orderSummary")}</h2>
         <div className="flex justify-between border-b border-las-border pb-4 text-sm">
-          <span className="text-las-muted">المجموع</span>
-          <span className="font-bold text-las-primary">{formatPrice(total)}</span>
+          <span className="text-las-muted">{t("total")}</span>
+          <span className="font-bold text-las-primary">{formatPrice(total, locale)}</span>
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-las-muted">
-          يتم الطلب والدفع عبر الموقع. واتساب للمتابعة بعد تأكيد الطلب.
-        </p>
+        <p className="mt-3 text-xs leading-relaxed text-las-muted">{t("checkoutNote")}</p>
         <Link
           href="/checkout"
           className="mt-6 flex w-full items-center justify-center rounded-sm bg-las-primary py-3.5 text-sm font-semibold text-white hover:bg-las-primary-hover"
         >
-          إتمام الطلب
+          {t("checkout")}
         </Link>
       </aside>
+    </div>
+  );
+}
+
+export function CartPageContent() {
+  const { t } = useLocale();
+
+  return (
+    <div className="bg-white">
+      <div className="border-b border-las-border bg-las-cream py-12">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-las-primary">{t("cartTitle")}</h1>
+        </div>
+      </div>
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <CartView />
+      </div>
     </div>
   );
 }

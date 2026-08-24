@@ -5,13 +5,22 @@ export type CartItem = {
   price: number;
   quantity: number;
   color?: string;
+  weight?: string;
   image: string;
 };
 
 export const CART_STORAGE_KEY = "las-store-cart";
 
-export function getLineId(slug: string, color?: string): string {
-  return color ? `${slug}:${color}` : slug;
+export function getLineId(item: {
+  slug: string;
+  color?: string;
+  weight?: string;
+}): string {
+  return [item.slug, item.color, item.weight].filter(Boolean).join(":");
+}
+
+export function cartItemOptions(item: CartItem): string {
+  return [item.color, item.weight].filter(Boolean).join(" · ");
 }
 
 export function cartTotal(items: CartItem[]): number {

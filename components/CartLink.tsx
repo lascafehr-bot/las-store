@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
+import { useLocale } from "@/components/LocaleProvider";
 
 export function CartLink() {
   const { itemCount } = useCart();
+  const { t } = useLocale();
 
   return (
     <Link
@@ -12,9 +14,9 @@ export function CartLink() {
       className="relative inline-flex items-center gap-1.5 text-sm text-las-primary transition-colors hover:text-las-accent"
     >
       <CartIcon />
-      <span className="hidden sm:inline">السلة</span>
+      <span className="hidden sm:inline">{t("cart")}</span>
       {itemCount > 0 && (
-        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-las-accent px-1 text-[10px] font-bold text-white">
+        <span lang="en" dir="ltr" className="flex h-5 min-w-5 items-center justify-center rounded-full bg-las-accent px-1 text-[10px] font-bold text-white">
           {itemCount}
         </span>
       )}
