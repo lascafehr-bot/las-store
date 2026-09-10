@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type BrandMarkProps = {
@@ -6,15 +7,21 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ href = "/", size = "md" }: BrandMarkProps) {
-  const lasClass = size === "sm" ? "text-base" : "text-xl";
-  const cafeClass = size === "sm" ? "text-[9px]" : "text-[11px]";
+  const dimensions =
+    size === "sm"
+      ? { width: 72, height: 50, className: "h-10 w-auto" }
+      : { width: 96, height: 67, className: "h-12 w-auto sm:h-14" };
 
   return (
-    <Link href={href} className="shrink-0">
-      <span className={`font-brand leading-none text-las-primary ${lasClass}`}>
-        <span className="block font-semibold tracking-[0.12em]">LAS</span>
-        <span className={`block font-normal tracking-[0.28em] text-las-accent ${cafeClass}`}>CAFE</span>
-      </span>
+    <Link href={href} className="shrink-0" aria-label="LAS CAFE">
+      <Image
+        src="/media/las-logo.png"
+        alt="LAS CAFE"
+        width={dimensions.width}
+        height={dimensions.height}
+        className={`${dimensions.className} object-contain`}
+        priority
+      />
     </Link>
   );
 }
