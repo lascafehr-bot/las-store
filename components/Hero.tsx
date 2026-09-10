@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function Hero() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#f0ebe3]">
+    <section className="relative w-full overflow-hidden bg-las-bg">
       <Link
         href="/?category=merch"
         className="group relative block w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-las-primary"

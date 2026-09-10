@@ -245,7 +245,7 @@ export function ProductPageShell({ product }: ProductPageShellProps) {
   const { locale, t } = useLocale();
 
   return (
-    <div className="bg-white">
+    <div className="bg-las-bg">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
         <Link
           href="/"

@@ -102,7 +102,7 @@ export function CartPageContent() {
   const { t } = useLocale();
 
   return (
-    <div className="bg-white">
+    <div className="bg-las-bg">
       <div className="border-b border-las-border bg-las-cream py-12">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-las-primary">{t("cartTitle")}</h1>
