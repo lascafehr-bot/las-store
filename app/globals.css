@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --las-bg: #faf9f7;
-  --las-cream: #f3f0eb;
+  /* LAS 2026 brand palette: cream #f8f4ec · taupe #a58670 · navy #3d4864 */
+  --las-bg: #f8f4ec;
+  --las-cream: #f3efe6;
   --las-dark: #003b49;
   --las-primary: #003b49;
   --las-primary-hover: #00566a;
