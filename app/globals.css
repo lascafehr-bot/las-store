@@ -34,6 +34,10 @@ body {
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+html {
+  background-color: var(--las-bg);
+}
+
 .font-brand {
   font-family: var(--font-brand);
 }
