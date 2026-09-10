@@ -4,13 +4,13 @@
   /* LAS 2026 brand palette: cream #f8f4ec · taupe #a58670 · navy #3d4864 */
   --las-bg: #f8f4ec;
   --las-cream: #f3efe6;
-  --las-dark: #003b49;
-  --las-primary: #003b49;
-  --las-primary-hover: #00566a;
-  --las-accent: #c68e65;
-  --las-accent-hover: #b07d58;
+  --las-dark: #3d4864;
+  --las-primary: #3d4864;
+  --las-primary-hover: #505c7a;
+  --las-accent: #a58670;
+  --las-accent-hover: #94765f;
   --las-muted: #6b7280;
-  --las-border: rgba(0, 59, 73, 0.1);
+  --las-border: rgba(61, 72, 100, 0.12);
 }
 
 @theme inline {
@@ -25,7 +25,7 @@
   --color-las-border: var(--las-border);
   --font-sans: var(--font-arabic), "Segoe UI", Tahoma, Arial, sans-serif;
   --font-brand: var(--font-las-brand), Georgia, "Times New Roman", serif;
-  --shadow-las: 0 8px 32px rgba(0, 59, 73, 0.06);
+  --shadow-las: 0 8px 32px rgba(61, 72, 100, 0.08);
 }
 
 body {
