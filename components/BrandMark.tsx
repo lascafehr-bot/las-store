@@ -9,8 +9,8 @@ type BrandMarkProps = {
 export function BrandMark({ href = "/", size = "md" }: BrandMarkProps) {
   const dimensions =
     size === "sm"
-      ? { width: 72, height: 50, className: "h-10 w-auto" }
-      : { width: 96, height: 67, className: "h-12 w-auto sm:h-14" };
+      ? { width: 56, height: 39, className: "h-7 w-auto" }
+      : { width: 72, height: 50, className: "h-8 w-auto sm:h-9" };
 
   return (
     <Link href={href} className="shrink-0" aria-label="LAS CAFE">
