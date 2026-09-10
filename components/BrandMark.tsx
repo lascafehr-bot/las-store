@@ -15,7 +15,7 @@ export function BrandMark({ href = "/", size = "md" }: BrandMarkProps) {
   return (
     <Link href={href} className="shrink-0" aria-label="LAS CAFE">
       <Image
-        src="/media/las-logo.png"
+        src="/media/las-logo-navy.png"
         alt="LAS CAFE"
         width={dimensions.width}
         height={dimensions.height}
