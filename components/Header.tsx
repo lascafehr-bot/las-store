@@ -9,6 +9,7 @@ import { LanguageSwitch } from "./LanguageSwitch";
 import { useLocale } from "./LocaleProvider";
 import { CATEGORIES, type CategoryId } from "@/lib/config";
 import { getCategoryLabel, getStoreTagline } from "@/lib/i18n";
+import { PRODUCTS } from "@/lib/products";
 
 export function Header() {
   const { locale, t } = useLocale();
@@ -23,7 +24,7 @@ export function Header() {
       label: t("home"),
       active: pathname === "/" && !activeCategory,
     },
-    ...CATEGORIES.map((cat) => ({
+    ...CATEGORIES.filter((cat) => PRODUCTS.some((product) => product.category === cat.id)).map((cat) => ({
       href: `/?category=${cat.id}`,
       label: getCategoryLabel(cat.id, locale, "section"),
       active: pathname === "/" && activeCategory === cat.id,
