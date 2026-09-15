@@ -91,15 +91,17 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
               </span>
             </div>
           ) : (
-            <Image
-              key={activeImage}
-              src={activeImage}
-              alt={name}
-              fill
-              className="object-contain p-6 mix-blend-multiply"
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <div className="absolute inset-0 mix-blend-multiply">
+              <Image
+                key={activeImage}
+                src={activeImage}
+                alt={name}
+                fill
+                className="object-contain p-6"
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
           )}
           {(product.badge || product.comingSoon) && (
             <span className="absolute right-4 top-4 bg-las-accent px-3 py-1 text-xs font-medium tracking-wide text-white">
@@ -121,7 +123,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                     : "border-transparent hover:border-las-border"
                 }`}
               >
-                <Image src={img} alt="" fill className="object-contain p-1 mix-blend-multiply" sizes="80px" />
+                <div className="absolute inset-0 mix-blend-multiply">
+                  <Image src={img} alt="" fill className="object-contain p-1" sizes="80px" />
+                </div>
               </button>
             ))}
           </div>
@@ -257,19 +261,21 @@ export function ProductPageShell({ product }: ProductPageShellProps) {
   return (
     <div className="bg-las-bg">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
-        <Link
-          href="/"
-          className="mb-8 inline-flex text-sm font-medium text-las-muted hover:text-las-primary"
-        >
-          {t("backToProducts")}
-        </Link>
+        <div className="mb-8 flex flex-col items-start gap-3">
+          <Link
+            href="/"
+            className="text-sm font-medium text-las-muted hover:text-las-primary"
+          >
+            {t("backToProducts")}
+          </Link>
 
-        <Link
-          href={`/?category=${product.category}`}
-          className="mb-6 inline-flex text-xs font-semibold uppercase tracking-wider text-las-accent hover:text-las-accent-hover"
-        >
-          {getCategoryLabel(product.category as CategoryId, locale, "section")}
-        </Link>
+          <Link
+            href={`/?category=${product.category}`}
+            className="text-xs font-semibold uppercase tracking-wider text-las-accent hover:text-las-accent-hover"
+          >
+            {getCategoryLabel(product.category as CategoryId, locale, "section")}
+          </Link>
+        </div>
 
         <ProductDetailView product={product} />
       </div>

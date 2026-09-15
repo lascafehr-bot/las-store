@@ -48,6 +48,7 @@ export type Product = {
   featured?: boolean;
   badge?: string;
   comingSoon?: boolean;
+  cardImage?: string;
 };
 
 export const BEAN_WEIGHTS: BeanWeight[] = [
@@ -101,6 +102,7 @@ export const PRODUCTS: Product[] = [
     ],
     featured: true,
     badge: "جديد",
+    cardImage: "/media/hero-las-mug.jpg",
   },
   {
     id: "6",

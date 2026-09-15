@@ -41,28 +41,38 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
               {locale === "en" ? product.nameEn : product.name}
             </span>
           </div>
+        ) : product.cardImage ? (
+          <Image
+            src={product.cardImage}
+            alt={name}
+            fill
+            className="object-cover object-left"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
         ) : showColorBox ? (
           <div className="flex h-full items-end justify-center gap-0 px-1 pb-3 pt-5">
             {colors.map((color) => (
-              <div key={color.id} className="relative h-full flex-1">
+              <div key={color.id} className="relative h-full flex-1 mix-blend-multiply">
                 <Image
                   src={color.images[0] ?? product.image}
                   alt={`${name} — ${locale === "en" ? color.labelEn : color.label}`}
                   fill
-                  className="object-contain mix-blend-multiply"
+                  className="object-contain"
                   sizes="(max-width: 640px) 25vw, 12vw"
                 />
               </div>
             ))}
           </div>
         ) : (
-          <Image
-            src={product.image}
-            alt={name}
-            fill
-            className="object-contain p-4 mix-blend-multiply"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          <div className="absolute inset-0 mix-blend-multiply">
+            <Image
+              src={product.image}
+              alt={name}
+              fill
+              className="object-contain p-4"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
         )}
         {(product.badge || comingSoon) && (
           <span className="absolute right-3 top-3 bg-las-accent px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
