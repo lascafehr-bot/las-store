@@ -25,23 +25,58 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
   const catalogPrice = getCatalogPrice(product);
   const catalogWeight = getCatalogWeight(product);
   const weightHint = locale === "en" ? catalogWeight?.labelEn : catalogWeight?.label;
+  const colors = product.colors ?? [];
+  const showColorBox = colors.length > 1;
+  const comingSoon = Boolean(product.comingSoon);
 
   return (
     <article className="group flex flex-col">
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-square overflow-hidden rounded-sm bg-white shadow-las"
+        className="relative block aspect-square overflow-hidden rounded-sm bg-las-bg"
       >
-        <Image
-          src={product.image}
-          alt={name}
-          fill
-          className="object-contain p-4 transition-transform duration-500 group-hover:scale-[1.02]"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-        {product.badge && (
+        {comingSoon ? (
+          <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+            <span className="font-brand text-3xl font-semibold tracking-wide text-las-primary">
+              {locale === "en" ? product.nameEn : product.name}
+            </span>
+          </div>
+        ) : product.cardImage ? (
+          <Image
+            src={product.cardImage}
+            alt={name}
+            fill
+            className="object-cover object-left"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        ) : showColorBox ? (
+          <div className="flex h-full items-end justify-center gap-0 px-1 pb-3 pt-5">
+            {colors.map((color) => (
+              <div key={color.id} className="relative h-full flex-1 mix-blend-multiply">
+                <Image
+                  src={color.images[0] ?? product.image}
+                  alt={`${name} — ${locale === "en" ? color.labelEn : color.label}`}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 640px) 25vw, 12vw"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="absolute inset-0 mix-blend-multiply">
+            <Image
+              src={product.image}
+              alt={name}
+              fill
+              className="object-contain p-4"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </div>
+        )}
+        {(product.badge || comingSoon) && (
           <span className="absolute right-3 top-3 bg-las-accent px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
-            {product.badge}
+            {comingSoon ? t("soon") : product.badge}
           </span>
         )}
       </Link>
@@ -59,7 +94,9 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
           </p>
         )}
 
-        {catalogPrice > 0 && (
+        {comingSoon ? (
+          <p className="mt-auto pt-3 text-xs text-las-muted">{t("soon")}</p>
+        ) : catalogPrice > 0 ? (
           <div className="mt-auto pt-3">
             <Price amount={catalogPrice} hint={weightHint} />
             {hasKilogramOption(product) && (
@@ -67,7 +104,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
             )}
             <CatalogAddToCart product={product} />
           </div>
-        )}
+        ) : null}
       </div>
     </article>
   );

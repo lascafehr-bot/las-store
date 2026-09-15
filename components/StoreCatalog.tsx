@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CategoryPills, PREVIEW_COUNT } from "@/components/CategoryPills";
+import { LearnMore } from "@/components/LearnMore";
 import { useLocale } from "@/components/LocaleProvider";
 import { ProductCard } from "@/components/ProductCard";
 import { CATEGORIES, type CategoryId } from "@/lib/config";
@@ -53,6 +54,9 @@ export function StoreCatalog() {
             );
           })}
         </div>
+        <div className="mt-16 sm:mt-20">
+          <LearnMore />
+        </div>
       </div>
     );
   }
@@ -77,6 +81,9 @@ export function StoreCatalog() {
           </div>
         </>
       )}
+      <div className="mt-16 sm:mt-20">
+        <LearnMore />
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Script from "next/script";
 import type { Metadata } from "next";
 import { Noto_Sans_Arabic, Cormorant_Garamond } from "next/font/google";
@@ -58,7 +59,9 @@ export default function RootLayout({
         )}
         <LocaleProvider>
           <CartProvider>
-            <Header />
+            <Suspense fallback={<HeaderFallback />}>
+              <Header />
+            </Suspense>
             <main className="flex-1">{children}</main>
             <Footer />
           </CartProvider>
@@ -66,4 +69,8 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
+
+function HeaderFallback() {
+  return <div className="h-[4.75rem] border-b border-las-border bg-las-bg sm:h-[5.5rem]" />;
 }

@@ -83,37 +83,49 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
       <div className="space-y-4">
-        <div className="relative aspect-square w-full overflow-hidden bg-las-cream">
-          <Image
-            key={activeImage}
-            src={activeImage}
-            alt={name}
-            fill
-            className="object-contain p-6"
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-          {product.badge && (
+        <div className="relative aspect-square w-full overflow-hidden bg-las-bg">
+          {product.comingSoon ? (
+            <div className="flex h-full items-center justify-center px-6 text-center">
+              <span className="font-brand text-4xl font-semibold tracking-wide text-las-primary sm:text-5xl">
+                {name}
+              </span>
+            </div>
+          ) : (
+            <div className="absolute inset-0 mix-blend-multiply">
+              <Image
+                key={activeImage}
+                src={activeImage}
+                alt={name}
+                fill
+                className="object-contain p-6"
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          )}
+          {(product.badge || product.comingSoon) && (
             <span className="absolute right-4 top-4 bg-las-accent px-3 py-1 text-xs font-medium tracking-wide text-white">
-              {product.badge}
+              {product.comingSoon ? t("soon") : product.badge}
             </span>
           )}
         </div>
 
-        {galleryImages.length > 1 && (
+        {galleryImages.length > 1 && !product.comingSoon && (
           <div className="flex gap-2">
             {galleryImages.map((img, index) => (
               <button
                 key={img}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
-                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-cream transition-colors ${
+                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-bg transition-colors ${
                   activeImageIndex === index
                     ? "border-las-primary"
                     : "border-transparent hover:border-las-border"
                 }`}
               >
-                <Image src={img} alt="" fill className="object-contain p-1" sizes="80px" />
+                <div className="absolute inset-0 mix-blend-multiply">
+                  <Image src={img} alt="" fill className="object-contain p-1" sizes="80px" />
+                </div>
               </button>
             ))}
           </div>
@@ -126,7 +138,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           <p className="text-sm text-las-muted">{altName}</p>
         )}
 
-        {selectedPrice > 0 ? (
+        {product.comingSoon ? (
+          <p className="text-sm text-las-muted">{t("soon")}</p>
+        ) : selectedPrice > 0 ? (
           <Price amount={selectedPrice} size="detail" hint={isBean ? weightText : undefined} />
         ) : isBean ? (
           <p className="text-xl font-semibold text-las-primary">{t("priceByWeight")}</p>
@@ -214,7 +228,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           </div>
         )}
 
-        {canPurchase && (
+        {canPurchase && !product.comingSoon && (
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
@@ -247,19 +261,21 @@ export function ProductPageShell({ product }: ProductPageShellProps) {
   return (
     <div className="bg-las-bg">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
-        <Link
-          href="/"
-          className="mb-8 inline-flex text-sm font-medium text-las-muted hover:text-las-primary"
-        >
-          {t("backToProducts")}
-        </Link>
+        <div className="mb-8 flex flex-col items-start gap-3">
+          <Link
+            href="/"
+            className="text-sm font-medium text-las-muted hover:text-las-primary"
+          >
+            {t("backToProducts")}
+          </Link>
 
-        <Link
-          href={`/?category=${product.category}`}
-          className="mb-6 inline-flex text-xs font-semibold uppercase tracking-wider text-las-accent hover:text-las-accent-hover"
-        >
-          {getCategoryLabel(product.category as CategoryId, locale, "section")}
-        </Link>
+          <Link
+            href={`/?category=${product.category}`}
+            className="text-xs font-semibold uppercase tracking-wider text-las-accent hover:text-las-accent-hover"
+          >
+            {getCategoryLabel(product.category as CategoryId, locale, "section")}
+          </Link>
+        </div>
 
         <ProductDetailView product={product} />
       </div>

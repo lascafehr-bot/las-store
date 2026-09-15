@@ -24,9 +24,9 @@ export function Footer() {
         <div>
           <h4 className="mb-3 text-xs font-bold text-las-primary">{t("footerStore")}</h4>
           <ul className="space-y-2 text-sm text-las-muted">
+            <li><Link href="/" className="hover:text-las-accent">{t("home")}</Link></li>
             <li><Link href="/" className="hover:text-las-accent">{t("footerProducts")}</Link></li>
-            <li><Link href="/about" className="hover:text-las-accent">{t("footerAbout")}</Link></li>
-            <li><Link href="/wholesale" className="hover:text-las-accent">{t("footerWholesale")}</Link></li>
+            <li><Link href="/wholesale" className="hover:text-las-accent">{t("wholesale")}</Link></li>
           </ul>
         </div>
 

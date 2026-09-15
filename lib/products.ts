@@ -47,6 +47,8 @@ export type Product = {
   weights?: BeanWeight[];
   featured?: boolean;
   badge?: string;
+  comingSoon?: boolean;
+  cardImage?: string;
 };
 
 export const BEAN_WEIGHTS: BeanWeight[] = [
@@ -100,6 +102,22 @@ export const PRODUCTS: Product[] = [
     ],
     featured: true,
     badge: "جديد",
+    cardImage: "/media/hero-las-mug.jpg",
+  },
+  {
+    id: "6",
+    slug: "granola",
+    name: "قرانولا",
+    nameEn: "Granola",
+    description:
+      "قرانولا لاس — خيار يومي خفيف يتكامل مع قهوتكم. التفاصيل والسعر يظهران عند التوفر.",
+    descriptionEn:
+      "LAS granola — a light daily option alongside your coffee. Details and price will appear when available.",
+    price: 0,
+    category: "merch",
+    image: "/media/las-logo-full.png",
+    comingSoon: true,
+    featured: true,
   },
   {
     id: "3",
@@ -112,8 +130,8 @@ export const PRODUCTS: Product[] = [
       "A vibrant Guji dried (natural) coffee that opens with bright, juicy mandarin sweetness and a refreshing citrus lift. Delicate jasmine florals add elegance, while raisin notes bring ripe dried-fruit richness. Round, syrupy body and a long sweet finish.",
     price: 53,
     category: "coffee",
-    image: "/products/hambela-natural/front.png",
-    images: ["/products/hambela-natural/front.png", "/products/hambela-natural/side.png"],
+    image: "/products/hambela-natural/side.png",
+    images: ["/products/hambela-natural/side.png", "/products/hambela-natural/front.png"],
     coffeeProfile: {
       origin: { ar: "أثيوبيا — همبيلا", en: "Ethiopia — Hambela" },
       altitude: { ar: "1850-2200 متر", en: "1850–2200 m" },
@@ -137,8 +155,8 @@ export const PRODUCTS: Product[] = [
       "Grown at La Majada farms in Apaneca, harvested between November and April across several soil types.",
     price: 48,
     category: "coffee",
-    image: "/products/salvador-la-majada/front.png",
-    images: ["/products/salvador-la-majada/front.png", "/products/salvador-la-majada/side.png"],
+    image: "/products/salvador-la-majada/side.png",
+    images: ["/products/salvador-la-majada/side.png", "/products/salvador-la-majada/front.png"],
     coffeeProfile: {
       origin: { ar: "أبييانكا — أهواتشابان", en: "Apaneca — Ahuachapán" },
       altitude: { ar: "1300-1400 متر", en: "1300–1400 m" },
@@ -173,8 +191,8 @@ export const PRODUCTS: Product[] = [
       "From the Huila mountains of Colombia, at 1800–2200 m, Monte is grown from Castillo and Caturra.",
     price: 56,
     category: "coffee",
-    image: "/products/monte-natural/front.png",
-    images: ["/products/monte-natural/front.png", "/products/monte-natural/side.png"],
+    image: "/products/monte-natural/side.png",
+    images: ["/products/monte-natural/side.png", "/products/monte-natural/front.png"],
     coffeeProfile: {
       origin: { ar: "كولومبيا — ويلا", en: "Colombia — Huila" },
       altitude: { ar: "1800-2200 متر", en: "1800–2200 m" },
