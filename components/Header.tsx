@@ -2,29 +2,29 @@
 
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
+import { CATEGORIES } from "@/lib/config";
+import { getCategoryLabel, getStoreTagline } from "@/lib/i18n";
+import { getProductsByCategory } from "@/lib/products";
 import { CartLink } from "./CartLink";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { useLocale } from "./LocaleProvider";
 
 export function Header() {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
+
+  const categoryLinks = CATEGORIES.filter(
+    (cat) => getProductsByCategory(cat.id).length > 0,
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-las-border bg-las-bg/95 backdrop-blur-sm">
-      <div className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-4 overflow-visible px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-        <div className="flex min-w-0 items-center gap-4 overflow-visible sm:gap-6">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <div className="flex min-w-0 flex-col">
           <BrandMark />
-          <Link
-            href="/wholesale"
-            className="hidden text-xs text-las-muted transition-colors hover:text-las-accent sm:inline"
-          >
-            {t("wholesale")}
-          </Link>
+          <p className="mt-1 text-[11px] leading-snug text-las-muted sm:text-xs">
+            {getStoreTagline(locale)}
+          </p>
         </div>
-
-        <p className="pointer-events-none absolute left-1/2 top-1/2 hidden w-[min(36rem,calc(100%-22rem))] -translate-x-1/2 -translate-y-1/2 text-center text-xs leading-snug text-las-muted md:block lg:text-sm">
-          {t("headerDescription")}
-        </p>
 
         <div className="flex items-center gap-3 sm:gap-4">
           <LanguageSwitch />
@@ -32,9 +32,39 @@ export function Header() {
         </div>
       </div>
 
-      <p className="px-4 pb-3 text-center text-[11px] leading-relaxed text-las-muted md:hidden">
-        {t("headerDescription")}
-      </p>
+      <nav
+        aria-label={t("home")}
+        className="border-t border-las-border/60"
+      >
+        <ul className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-5 gap-y-1 px-4 py-2.5 text-sm sm:gap-x-7 sm:px-6 lg:px-8">
+          <li>
+            <Link
+              href="/"
+              className="font-medium text-las-primary transition-colors hover:text-las-accent"
+            >
+              {t("home")}
+            </Link>
+          </li>
+          {categoryLinks.map((cat) => (
+            <li key={cat.id}>
+              <Link
+                href={`/?category=${cat.id}`}
+                className="text-las-muted transition-colors hover:text-las-primary"
+              >
+                {getCategoryLabel(cat.id, locale, "pill")}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link
+              href="/wholesale"
+              className="text-las-muted transition-colors hover:text-las-accent"
+            >
+              {t("wholesale")}
+            </Link>
+          </li>
+        </ul>
+      </nav>
     </header>
   );
 }

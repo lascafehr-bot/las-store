@@ -12,9 +12,10 @@ export const LOCALES: { id: Locale; label: string }[] = [
 const messages = {
   ar: {
     cart: "السلة",
+    home: "الصفحة الرئيسية",
     wholesale: "للمتاجر والشركاء",
     wholesaleWaiting: "بانتظار باقي التفاصيل من قبلكم",
-    headerDescription: "تسوّق أفضل أنواع البن والمحاصيل المختارة بعناية من لاس كافي",
+    learnMore: "اعرف المزيد",
     all: "الكل",
     viewAll: "عرض الكل",
     noProductsInCategory: "لا توجد منتجات في هذا التصنيف حالياً.",
@@ -97,9 +98,10 @@ const messages = {
   },
   en: {
     cart: "Cart",
+    home: "Home",
     wholesale: "Wholesale & Partners",
     wholesaleWaiting: "Waiting for the remaining details from you",
-    headerDescription: "Shop the finest coffee and carefully selected origins from LAS CAFE",
+    learnMore: "Learn more",
     all: "All",
     viewAll: "View all",
     noProductsInCategory: "No products in this category yet.",
