@@ -30,7 +30,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
     <article className="group flex flex-col">
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-square overflow-hidden rounded-sm bg-white shadow-las"
+        className="relative block aspect-square overflow-hidden rounded-sm bg-las-bg shadow-las"
       >
         <Image
           src={product.image}
@@ -57,6 +57,20 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
           <p className="line-clamp-2 text-xs leading-relaxed text-las-muted sm:text-sm">
             {description}
           </p>
+        )}
+
+        {product.colors && product.colors.length > 0 && (
+          <div className="mt-1 flex items-center gap-1.5">
+            {product.colors.map((color) => (
+              <span
+                key={color.id}
+                title={locale === "en" ? color.labelEn : color.label}
+                aria-label={locale === "en" ? color.labelEn : color.label}
+                className="h-3.5 w-3.5 rounded-full border border-las-border"
+                style={{ backgroundColor: color.swatch }}
+              />
+            ))}
+          </div>
         )}
 
         {catalogPrice > 0 && (

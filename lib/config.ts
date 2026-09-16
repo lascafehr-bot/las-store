@@ -30,7 +30,7 @@ export const STORE_CONFIG = {
   ],
 } as const;
 
-export type CategoryId = "coffee" | "merch" | "bundles";
+export type CategoryId = "coffee" | "merch" | "food" | "bundles";
 
 export const CATEGORIES: {
   id: CategoryId;
@@ -55,6 +55,14 @@ export const CATEGORIES: {
     pillLabel: "منتجات لاس",
     pillLabelEn: "LAS Products",
     description: "أكواب وإكسسوارات",
+  },
+  {
+    id: "food",
+    label: "أطعمة",
+    labelEn: "Food",
+    pillLabel: "أطعمة",
+    pillLabelEn: "Food",
+    description: "قرانولا ومخبوزات",
   },
   {
     id: "bundles",

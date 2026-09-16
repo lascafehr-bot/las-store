@@ -83,7 +83,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
       <div className="space-y-4">
-        <div className="relative aspect-square w-full overflow-hidden bg-las-cream">
+        <div className="relative aspect-square w-full overflow-hidden bg-las-bg">
           <Image
             key={activeImage}
             src={activeImage}
@@ -107,7 +107,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                 key={img}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
-                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-cream transition-colors ${
+                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-bg transition-colors ${
                   activeImageIndex === index
                     ? "border-las-primary"
                     : "border-transparent hover:border-las-border"

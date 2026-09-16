@@ -112,8 +112,8 @@ export const PRODUCTS: Product[] = [
       "A vibrant Guji dried (natural) coffee that opens with bright, juicy mandarin sweetness and a refreshing citrus lift. Delicate jasmine florals add elegance, while raisin notes bring ripe dried-fruit richness. Round, syrupy body and a long sweet finish.",
     price: 53,
     category: "coffee",
-    image: "/products/hambela-natural/front.png",
-    images: ["/products/hambela-natural/front.png", "/products/hambela-natural/side.png"],
+    image: "/products/hambela-natural/side.png",
+    images: ["/products/hambela-natural/side.png", "/products/hambela-natural/front.png"],
     coffeeProfile: {
       origin: { ar: "أثيوبيا — همبيلا", en: "Ethiopia — Hambela" },
       altitude: { ar: "1850-2200 متر", en: "1850–2200 m" },
@@ -137,8 +137,8 @@ export const PRODUCTS: Product[] = [
       "Grown at La Majada farms in Apaneca, harvested between November and April across several soil types.",
     price: 48,
     category: "coffee",
-    image: "/products/salvador-la-majada/front.png",
-    images: ["/products/salvador-la-majada/front.png", "/products/salvador-la-majada/side.png"],
+    image: "/products/salvador-la-majada/side.png",
+    images: ["/products/salvador-la-majada/side.png", "/products/salvador-la-majada/front.png"],
     coffeeProfile: {
       origin: { ar: "أبييانكا — أهواتشابان", en: "Apaneca — Ahuachapán" },
       altitude: { ar: "1300-1400 متر", en: "1300–1400 m" },
@@ -173,8 +173,8 @@ export const PRODUCTS: Product[] = [
       "From the Huila mountains of Colombia, at 1800–2200 m, Monte is grown from Castillo and Caturra.",
     price: 56,
     category: "coffee",
-    image: "/products/monte-natural/front.png",
-    images: ["/products/monte-natural/front.png", "/products/monte-natural/side.png"],
+    image: "/products/monte-natural/side.png",
+    images: ["/products/monte-natural/side.png", "/products/monte-natural/front.png"],
     coffeeProfile: {
       origin: { ar: "كولومبيا — ويلا", en: "Colombia — Huila" },
       altitude: { ar: "1800-2200 متر", en: "1800–2200 m" },
@@ -191,6 +191,28 @@ export const PRODUCTS: Product[] = [
       { id: "1kg", label: "1كغم", labelEn: "1kg", price: 150 },
     ],
     featured: true,
+  },
+  {
+    id: "6",
+    slug: "las-granola",
+    name: "قرانولا لاس",
+    nameEn: "LAS Granola",
+    description:
+      "قرانولا لاس المقرمشة، محمّصة بعناية مع الشوفان والمكسرات والفواكه المجففة وقليل من العسل. رفيق مثالي لقهوتك الصباحية — لذيذة مع الحليب أو الزبادي أو وحدها.",
+    descriptionEn:
+      "LAS crunchy granola, carefully baked with oats, nuts, dried fruit, and a touch of honey. The perfect companion to your morning coffee — great with milk, yogurt, or on its own.",
+    price: 39,
+    category: "food",
+    image: "/products/granola/front.jpg",
+    images: ["/products/granola/front.jpg"],
+    specs: [
+      "شوفان كامل الحبة مع مكسرات وفواكه مجففة.",
+      "محلّاة بالعسل الطبيعي بدون سكر مضاف.",
+      "مقرمشة وغنية بالألياف.",
+      "عبوة 300غم قابلة لإعادة الإغلاق للحفاظ على الطزاجة.",
+    ],
+    featured: true,
+    badge: "جديد",
   },
 ];
 

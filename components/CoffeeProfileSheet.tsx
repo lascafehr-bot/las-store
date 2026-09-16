@@ -1,15 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  AltitudeIcon,
-  BeanIcon,
-  BookIcon,
-  NoteIcon,
-  PinIcon,
-  ProcessIcon,
-  VarietyIcon,
-} from "@/components/CoffeeIcons";
+import { PinIcon } from "@/components/CoffeeIcons";
 import { useLocale } from "@/components/LocaleProvider";
 import { localized, type CoffeeProfile } from "@/lib/products";
 
@@ -31,18 +23,15 @@ export function CoffeeProfileSheet({ name, description, profile }: CoffeeProfile
   return (
     <div className="space-y-8 bg-las-cream/70 px-5 py-7 sm:px-7">
       <section>
-        <SheetHeading icon={<BeanIcon />}>{name}</SheetHeading>
+        <SheetHeading>{name}</SheetHeading>
         {description && (
-          <div className="mt-4 flex items-start gap-3">
-            <BookIcon />
-            <p className="text-sm leading-[2] text-las-primary/80">{description}</p>
-          </div>
+          <p className="mt-4 text-sm leading-[2] text-las-primary/80">{description}</p>
         )}
       </section>
 
       {(process || processDescription) && (
         <section>
-          <SheetHeading icon={<ProcessIcon />}>{t("aboutProcess")}</SheetHeading>
+          <SheetHeading>{t("aboutProcess")}</SheetHeading>
           {process && (
             <p className="mt-2 text-sm font-semibold text-las-primary">{process}</p>
           )}
@@ -56,30 +45,21 @@ export function CoffeeProfileSheet({ name, description, profile }: CoffeeProfile
         {origin && (
           <SheetRow icon={<PinIcon />}>{origin}</SheetRow>
         )}
-        {altitude && (
-          <SheetRow icon={<AltitudeIcon />}>{altitude}</SheetRow>
-        )}
-        {flavors && (
-          <SheetRow icon={<NoteIcon />}>{flavors}</SheetRow>
-        )}
-        {variety && (
-          <SheetRow icon={<VarietyIcon />}>{variety}</SheetRow>
-        )}
+        {altitude && <SheetRow>{altitude}</SheetRow>}
+        {flavors && <SheetRow>{flavors}</SheetRow>}
+        {variety && <SheetRow>{variety}</SheetRow>}
       </ul>
     </div>
   );
 }
 
-function SheetHeading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+function SheetHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="flex items-center gap-2.5 text-base font-bold text-las-primary">
-      {icon}
-      <span>{children}</span>
-    </h2>
+    <h2 className="text-base font-bold text-las-primary">{children}</h2>
   );
 }
 
-function SheetRow({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+function SheetRow({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
   return (
     <li className="flex items-start gap-3 text-sm leading-relaxed text-las-primary/85">
       {icon}
