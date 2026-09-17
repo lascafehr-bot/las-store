@@ -21,7 +21,7 @@ export function WholesalePdf({ src, title }: WholesalePdfProps) {
       const pdfjs = await import("pdfjs-dist");
       pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-      const loadingTask = pdfjs.getDocument(src);
+      const loadingTask = pdfjs.getDocument({ url: src });
       const pdf = await loadingTask.promise;
       if (cancelled || !container) return;
 
