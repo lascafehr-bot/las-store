@@ -47,7 +47,7 @@ export function OrderConfirmation() {
         </p>
       </div>
 
-      <div className="space-y-4 border border-las-border bg-white p-6">
+      <div className="space-y-4 border border-las-border bg-las-bg p-6">
         <h2 className="font-bold text-las-primary">{t("orderDetails")}</h2>
         <ul className="space-y-2 text-sm">
           {order.items.map((item) => (
@@ -79,7 +79,7 @@ export function OrderConfirmation() {
         </div>
       </div>
 
-      <div className="mt-8 border border-las-border bg-las-cream/50 p-6">
+      <div className="mt-8 border border-las-border bg-las-bg p-6">
         <h2 className="mb-2 font-bold text-las-primary">{t("whatsappFollowUp")}</h2>
         <p className="mb-4 text-sm leading-relaxed text-las-muted">{t("whatsappFollowUpDesc")}</p>
         <a

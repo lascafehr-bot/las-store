@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --las-bg: #faf9f7;
-  --las-cream: #f3f0eb;
-  --las-dark: #003b49;
-  --las-primary: #003b49;
-  --las-primary-hover: #00566a;
-  --las-accent: #c68e65;
-  --las-accent-hover: #b07d58;
-  --las-muted: #6b7280;
-  --las-border: rgba(0, 59, 73, 0.1);
+  --las-bg: #f8f4ec;
+  --las-cream: #f8f4ec;
+  --las-dark: #3d4864;
+  --las-primary: #3d4864;
+  --las-primary-hover: #2f3850;
+  --las-accent: #a58670;
+  --las-accent-hover: #8f6f5c;
+  --las-muted: #7a6d66;
+  --las-border: rgba(61, 72, 100, 0.14);
 }
 
 @theme inline {
@@ -24,11 +24,15 @@
   --color-las-border: var(--las-border);
   --font-sans: var(--font-arabic), "Segoe UI", Tahoma, Arial, sans-serif;
   --font-brand: var(--font-las-brand), Georgia, "Times New Roman", serif;
-  --shadow-las: 0 8px 32px rgba(0, 59, 73, 0.06);
+  --shadow-las: 0 8px 32px rgba(61, 72, 100, 0.06);
+}
+
+html,
+body {
+  background-color: var(--las-bg);
 }
 
 body {
-  background-color: var(--las-bg);
   color: var(--las-primary);
   font-variant-numeric: lining-nums tabular-nums;
 }
@@ -42,4 +46,37 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+img.las-header-logo {
+  display: block;
+  width: auto;
+  max-width: none;
+  height: 48px;
+  object-fit: contain;
+  filter: invert(1);
+  mix-blend-mode: multiply;
+}
+
+img.las-header-logo.las-header-logo-sm {
+  height: 36px;
+}
+
+@keyframes las-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.las-marquee {
+  animation: las-marquee 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .las-marquee {
+    animation: none;
+  }
 }

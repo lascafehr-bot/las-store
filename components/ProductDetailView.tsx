@@ -16,6 +16,7 @@ import {
 } from "@/lib/i18n";
 import {
   getBeanWeights,
+  hasKilogramOption,
   isBeanProduct,
   type Product,
 } from "@/lib/products";
@@ -46,7 +47,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
     product.colors?.find((c) => c.id === selectedColorId) ?? defaultColor;
 
   const galleryImages =
-    selectedColor?.images ?? product.images ?? [product.image];
+    (selectedColor?.images ?? product.images ?? [product.image]).filter(Boolean);
 
   const activeImage = galleryImages[activeImageIndex] ?? product.image;
   const colorLabel =
@@ -83,16 +84,26 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
   return (
     <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
       <div className="space-y-4">
-        <div className="relative aspect-square w-full overflow-hidden bg-las-cream">
-          <Image
-            key={activeImage}
-            src={activeImage}
-            alt={name}
-            fill
-            className="object-contain p-6"
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
+        <div className="relative aspect-square w-full overflow-hidden bg-las-bg">
+          {activeImage ? (
+            <Image
+              key={activeImage}
+              src={activeImage}
+              alt={name}
+              fill
+              className={
+                product.category === "coffee"
+                  ? "object-cover"
+                  : product.slug === "las-granola"
+                    ? "object-contain"
+                    : product.slug === "las-mug"
+                      ? "object-contain mix-blend-multiply"
+                      : "object-contain p-6"
+              }
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          ) : null}
           {product.badge && (
             <span className="absolute right-4 top-4 bg-las-accent px-3 py-1 text-xs font-medium tracking-wide text-white">
               {product.badge}
@@ -107,13 +118,19 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                 key={img}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
-                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-cream transition-colors ${
+                className={`relative h-20 w-20 overflow-hidden border-2 bg-las-bg transition-colors ${
                   activeImageIndex === index
                     ? "border-las-primary"
                     : "border-transparent hover:border-las-border"
                 }`}
               >
-                <Image src={img} alt="" fill className="object-contain p-1" sizes="80px" />
+                <Image
+                  src={img}
+                  alt=""
+                  fill
+                  className={product.category === "coffee" ? "object-cover" : "object-contain p-1"}
+                  sizes="80px"
+                />
               </button>
             ))}
           </div>
@@ -195,11 +212,14 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                 </button>
               ))}
             </div>
+            {hasKilogramOption(product) && (
+              <p className="mt-3 text-xs leading-relaxed text-las-muted">{t("availableKg")}</p>
+            )}
           </div>
         )}
 
         {product.specs && product.specs.length > 0 && !isBean && (
-          <div className="border border-las-border bg-las-cream/50 p-6">
+          <div className="border border-las-border bg-las-bg p-6">
             <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-las-primary">
               {t("specs")}
             </h2>
@@ -245,7 +265,7 @@ export function ProductPageShell({ product }: ProductPageShellProps) {
   const { locale, t } = useLocale();
 
   return (
-    <div className="bg-white">
+    <div className="bg-las-bg">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-14">
         <Link
           href="/"

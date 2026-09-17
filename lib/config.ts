@@ -1,21 +1,21 @@
 export const STORE_CONFIG = {
   name: "متجر لاس",
   nameEn: "LAS Store",
-  tagline: "قهوة ومنتجات لاس — ببساطة",
-  taglineEn: "LAS CAFE products — simply",
+  tagline: "taste your feeling",
+  taglineEn: "taste your feeling",
   companyName: "LAS CAFE",
-  phone: "+966566659710",
-  whatsapp: "966566659710",
-  storeWhatsapp: "", // public store WhatsApp — not ready yet
+  phone: "+966554789837",
+  whatsapp: "966554789837",
+  storeWhatsapp: "966554789837",
   email: "lascafehr@gmail.com",
   instagram: "https://www.instagram.com/las_cafe0",
   tiktok: "https://www.tiktok.com/@las_cafe",
   websiteUrl: "https://lascafe.sa",
   storeUrl: "https://shop.lascafe.sa",
   b2b: {
-    phone: "+966566659710",
+    phone: "+966554789837",
     email: "lascafehr@gmail.com",
-    whatsapp: "966566659710",
+    whatsapp: "966554789837",
     catalogPdf: "/downloads/wholesale-catalog.pdf",
   },
   compliance: {

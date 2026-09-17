@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { WholesalePageContent } from "@/components/WholesalePageContent";
 
 export const metadata: Metadata = {
-  title: "للمتاجر والشركاء — B2B",
+  title: "لبيع الجملة — B2B",
 };
 
 export default function WholesalePage() {

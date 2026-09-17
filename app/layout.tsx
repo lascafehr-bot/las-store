@@ -46,7 +46,7 @@ export default function RootLayout({
   const gaId = STORE_CONFIG.analyticsId;
 
   return (
-    <html lang="ar" dir="rtl" className={`${notoArabic.variable} ${lasBrand.variable} h-full`}>
+    <html lang="ar" dir="rtl" className={`${notoArabic.variable} ${lasBrand.variable} h-full bg-las-bg`}>
       <body className="flex min-h-full flex-col bg-las-bg font-sans text-las-primary antialiased">
         {gaId && (
           <>

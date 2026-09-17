@@ -32,9 +32,9 @@ export function CartView() {
         {items.map((item) => (
           <article
             key={item.lineId}
-            className="flex gap-4 border border-las-border bg-white p-4 sm:gap-6 sm:p-5"
+            className="flex gap-4 border border-las-border bg-las-bg p-4 sm:gap-6 sm:p-5"
           >
-            <div className="relative h-24 w-24 shrink-0 bg-las-cream sm:h-28 sm:w-28">
+            <div className="relative h-24 w-24 shrink-0 bg-las-bg sm:h-28 sm:w-28">
               <Image src={item.image} alt={item.name} fill className="object-contain p-2" sizes="112px" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
@@ -60,7 +60,7 @@ export function CartView() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.lineId, item.quantity - 1)}
-                    className="flex h-8 w-8 items-center justify-center border border-las-border text-las-primary hover:bg-las-cream"
+                    className="flex h-8 w-8 items-center justify-center border border-las-border text-las-primary hover:bg-las-bg"
                   >
                     −
                   </button>
@@ -68,7 +68,7 @@ export function CartView() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.lineId, item.quantity + 1)}
-                    className="flex h-8 w-8 items-center justify-center border border-las-border text-las-primary hover:bg-las-cream"
+                    className="flex h-8 w-8 items-center justify-center border border-las-border text-las-primary hover:bg-las-bg"
                   >
                     +
                   </button>
@@ -80,7 +80,7 @@ export function CartView() {
         ))}
       </div>
 
-      <aside className="h-fit border border-las-border bg-las-cream/50 p-6">
+      <aside className="h-fit border border-las-border bg-las-bg/50 p-6">
         <h2 className="mb-4 text-lg font-bold text-las-primary">{t("orderSummary")}</h2>
         <div className="flex justify-between border-b border-las-border pb-4 text-sm">
           <span className="text-las-muted">{t("total")}</span>
@@ -102,8 +102,8 @@ export function CartPageContent() {
   const { t } = useLocale();
 
   return (
-    <div className="bg-white">
-      <div className="border-b border-las-border bg-las-cream py-12">
+    <div className="bg-las-bg">
+      <div className="border-b border-las-border bg-las-bg py-12">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-las-primary">{t("cartTitle")}</h1>
         </div>

@@ -29,7 +29,8 @@ export function StoreCatalog() {
             const products = productsForCategory(cat.id, locale);
             if (products.length === 0) return null;
 
-            const preview = products.slice(0, PREVIEW_COUNT);
+            const preview =
+              cat.id === "coffee" ? products : products.slice(0, PREVIEW_COUNT);
 
             return (
               <section key={cat.id}>

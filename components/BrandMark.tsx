@@ -6,15 +6,19 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ href = "/", size = "md" }: BrandMarkProps) {
-  const lasClass = size === "sm" ? "text-base" : "text-xl";
-  const cafeClass = size === "sm" ? "text-[9px]" : "text-[11px]";
-
   return (
-    <Link href={href} className="shrink-0">
-      <span className={`font-brand leading-none text-las-primary ${lasClass}`}>
-        <span className="block font-semibold tracking-[0.12em]">LAS</span>
-        <span className={`block font-normal tracking-[0.28em] text-las-accent ${cafeClass}`}>CAFE</span>
-      </span>
+    <Link
+      href={href}
+      aria-label="LAS CAFE"
+      className="inline-flex isolate shrink-0 bg-las-bg ps-0.5"
+    >
+      <img
+        src="/brand/las-cafe-logo.jpg?v=6"
+        alt="LAS CAFE"
+        width={201}
+        height={150}
+        className={size === "sm" ? "las-header-logo las-header-logo-sm" : "las-header-logo"}
+      />
     </Link>
   );
 }

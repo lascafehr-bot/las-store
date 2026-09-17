@@ -25,7 +25,6 @@ export function Footer() {
           <h4 className="mb-3 text-xs font-bold text-las-primary">{t("footerStore")}</h4>
           <ul className="space-y-2 text-sm text-las-muted">
             <li><Link href="/" className="hover:text-las-accent">{t("footerProducts")}</Link></li>
-            <li><Link href="/about" className="hover:text-las-accent">{t("footerAbout")}</Link></li>
             <li><Link href="/wholesale" className="hover:text-las-accent">{t("footerWholesale")}</Link></li>
           </ul>
         </div>
@@ -46,9 +45,26 @@ export function Footer() {
         <div>
           <h4 className="mb-3 text-xs font-bold text-las-primary">{t("footerContact")}</h4>
           <ul className="space-y-2 text-sm text-las-muted">
-            <li>{t("comingSoon")}</li>
-            <li>phone: {t("comingSoon")}</li>
-            <li>email: {t("comingSoon")}</li>
+            <li>
+              <a
+                href={`tel:${STORE_CONFIG.phone}`}
+                className="hover:text-las-accent"
+                dir="ltr"
+                lang="en"
+              >
+                966554789837
+              </a>
+            </li>
+            <li>
+              <a
+                href={`mailto:${STORE_CONFIG.email}`}
+                className="hover:text-las-accent"
+                dir="ltr"
+                lang="en"
+              >
+                {STORE_CONFIG.email}
+              </a>
+            </li>
           </ul>
         </div>
       </div>

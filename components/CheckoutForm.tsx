@@ -69,7 +69,7 @@ export function CheckoutForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-10 lg:grid-cols-[1fr_360px]">
       <div className="space-y-8">
-        <section className="border border-las-border bg-white p-6">
+        <section className="border border-las-border bg-las-bg p-6">
           <h2 className="mb-4 text-lg font-bold text-las-primary">{t("customerDetails")}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block sm:col-span-2">
@@ -107,7 +107,7 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <section className="border border-las-border bg-white p-6">
+        <section className="border border-las-border bg-las-bg p-6">
           <h2 className="mb-4 text-lg font-bold text-las-primary">{t("delivery")}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -133,7 +133,7 @@ export function CheckoutForm() {
           </div>
         </section>
 
-        <section className="border border-las-border bg-white p-6">
+        <section className="border border-las-border bg-las-bg p-6">
           <h2 className="mb-4 text-lg font-bold text-las-primary">{t("notes")}</h2>
           <textarea
             value={notes}
@@ -144,7 +144,7 @@ export function CheckoutForm() {
           />
         </section>
 
-        <section className="border border-las-accent/30 bg-las-cream/80 p-6">
+        <section className="border border-las-accent/30 bg-las-bg/80 p-6">
           <h2 className="mb-2 text-lg font-bold text-las-primary">{t("payment")}</h2>
           <p className="mb-3 text-sm leading-relaxed text-las-muted">
             <span className="rounded-sm bg-las-accent/15 px-2 py-0.5 text-xs font-semibold text-las-accent">
@@ -152,14 +152,14 @@ export function CheckoutForm() {
             </span>
             {t("paymentDemoDesc")}
           </p>
-          <div className="rounded-sm border border-las-border bg-white px-4 py-3 text-sm text-las-primary">
+          <div className="rounded-sm border border-las-border bg-las-bg px-4 py-3 text-sm text-las-primary">
             {t("paymentSimulated")}
           </div>
         </section>
       </div>
 
       <aside className="h-fit space-y-4">
-        <div className="border border-las-border bg-las-cream/50 p-6">
+        <div className="border border-las-border bg-las-bg/50 p-6">
           <h2 className="mb-4 text-lg font-bold text-las-primary">{t("orderSummary")}</h2>
           <ul className="mb-4 space-y-2 border-b border-las-border pb-4 text-sm">
             {items.map((item) => (
@@ -199,7 +199,7 @@ export function CheckoutPageContent() {
 
   return (
     <div className="bg-las-bg">
-      <div className="border-b border-las-border bg-las-cream py-12">
+      <div className="border-b border-las-border bg-las-bg py-12">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-las-primary">{t("checkoutTitle")}</h1>
           <p className="mt-2 text-sm text-las-muted">{t("checkoutSubtitle")}</p>

@@ -9,7 +9,6 @@ import { getProductDescription, getProductName } from "@/lib/i18n";
 import {
   getCatalogPrice,
   getCatalogWeight,
-  hasKilogramOption,
   type Product,
 } from "@/lib/products";
 
@@ -19,7 +18,7 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, variant = "default" }: ProductCardProps) {
-  const { locale, t } = useLocale();
+  const { locale } = useLocale();
   const name = getProductName(product, locale);
   const description = getProductDescription(product, locale);
   const catalogPrice = getCatalogPrice(product);
@@ -30,15 +29,29 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
     <article className="group flex flex-col">
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-square overflow-hidden rounded-sm bg-white shadow-las"
+        className={`relative block aspect-square overflow-hidden bg-las-bg ${
+          product.category === "coffee" || product.slug === "las-granola" || product.slug === "las-mug"
+            ? ""
+            : "rounded-sm shadow-las"
+        }`}
       >
-        <Image
-          src={product.image}
-          alt={name}
-          fill
-          className="object-contain p-4 transition-transform duration-500 group-hover:scale-[1.02]"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={name}
+            fill
+            className={
+              product.slug === "las-granola"
+                ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                : product.slug === "las-mug"
+                  ? "object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.02]"
+                  : product.category === "coffee"
+                    ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                    : "object-contain p-4 transition-transform duration-500 group-hover:scale-[1.02]"
+            }
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          />
+        ) : null}
         {product.badge && (
           <span className="absolute right-3 top-3 bg-las-accent px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
             {product.badge}
@@ -62,9 +75,6 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
         {catalogPrice > 0 && (
           <div className="mt-auto pt-3">
             <Price amount={catalogPrice} hint={weightHint} />
-            {hasKilogramOption(product) && (
-              <p className="mt-1 text-xs leading-relaxed text-las-muted">{t("availableKg")}</p>
-            )}
             <CatalogAddToCart product={product} />
           </div>
         )}
