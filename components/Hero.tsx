@@ -8,7 +8,7 @@ export function Hero() {
         height={373}
         decoding="async"
         fetchPriority="high"
-        className="mx-auto block h-auto w-full max-w-none object-contain"
+        className="mx-auto block h-[240px] w-full max-w-none object-cover object-center sm:h-auto sm:object-contain"
       />
     </section>
   );

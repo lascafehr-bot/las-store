@@ -6,13 +6,13 @@ export const POLICY_CONTENT: Record<
 > = {
   returns: {
     ar: [
-      "يحق للعميل طلب استبدال أو استرجاع خلال 3 أيام من الاستلام، بشرط أن يكون المنتج بحالته الأصلية وغير مفتوح",
+      "خلال 24 ساعة الاستبدال والاسترجاع، بشرط أن يكون المنتج بحالته الأصلية وغير مفتوح",
       "لا يُقبل استرجاع المنتجات المفتوحة إلا في حال عيب مصنعي أو خطأ من المتجر",
       "في حال العيب أو الخطأ: يتحمل المتجر تكلفة الشحن والاستبدال بالكامل",
       "معالجة الطلبات خلال 3-5 أيام عمل، واسترداد المبلغ بنفس وسيلة الدفع خلال 14 يوم عمل",
     ],
     en: [
-      "The customer may request an exchange or return within 3 days of receipt, provided the product is in its original, unopened condition.",
+      "Exchange and returns within 24 hours of receipt, provided the product is in its original, unopened condition.",
       "Opened products cannot be returned except in the case of a manufacturing defect or a store error.",
       "In case of a defect or error, the store covers shipping and replacement costs in full.",
       "Requests are processed within 3–5 business days, and refunds are issued via the same payment method within 14 business days.",

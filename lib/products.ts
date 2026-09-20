@@ -61,20 +61,20 @@ export const PRODUCTS: Product[] = [
   {
     id: "1",
     slug: "las-mug",
-    name: "مق LAS",
+    name: "مق لاس",
     nameEn: "LAS Mug",
     description:
-      "صُمم مق LAS ليكون رفيقك اليومي أينما كنت، سواء في المنزل، أو المكتب، أو أثناء التنقل. يجمع بين التصميم الأنيق والأداء العملي، مع هيكل سهل الحمل يحافظ على مشروبك بدرجة الحرارة المثالية لفترة أطول.",
+      "صُمم مق لاس ليكون رفيقك اليومي أينما كنت، سواء في المنزل، أو المكتب، أو أثناء التنقل. يجمع بين التصميم الأنيق والأداء العملي، مع هيكل سهل الحمل يحافظ على مشروبك بدرجة الحرارة المثالية لفترة أطول.",
     descriptionEn:
       "Designed to be your daily companion at home, the office, or on the go — elegant design meets practical performance.",
-    price: 99,
+    price: 29,
     category: "merch",
     image: "/products/las-mug/grey-front.png",
     images: [
       "/products/las-mug/grey-front.png",
       "/products/las-mug/grey-side.png",
-      "/products/las-mug/pink-front.png",
-      "/products/las-mug/pink-side.png",
+      "/products/las-mug/beige-front.png",
+      "/products/las-mug/beige-side.png",
     ],
     colors: [
       {
@@ -86,19 +86,18 @@ export const PRODUCTS: Product[] = [
       },
       {
         id: "pink",
-        label: "وردي",
-        labelEn: "Pink",
-        swatch: "#c9a0a0",
-        images: ["/products/las-mug/pink-front.png", "/products/las-mug/pink-side.png"],
+        label: "بيج",
+        labelEn: "Beige",
+        swatch: "#c4b5a5",
+        images: ["/products/las-mug/beige-front.png", "/products/las-mug/beige-side.png"],
       },
     ],
     specs: [
       "تصميم أنيق وعصري.",
-      "مزود بمقبض يجعله سهل الحمل ومناسب للاستخدام اليومي.",
       "محكم الإغلاق مع زر أمان لمنع التسرب.",
       "يحافظ على حرارة المشروبات لأكثر من 3 ساعات.",
       "يحافظ على برودة المشروبات لأكثر من 6 ساعات.",
-      "متوفر بلونين: الرمادي والوردي، بتدرجات تناسب الجميع.",
+      "متوفر بلونين: الرمادي والبيج، بتدرجات تناسب الجميع.",
     ],
     featured: true,
     badge: "جديد",
@@ -112,10 +111,10 @@ export const PRODUCTS: Product[] = [
       "جرانولا خاصة تُحضّر وتُحمّص داخل المقهى بعناية، بمزيج من الشوفان والمكسرات والبذور والفواكه المجففة، لتمنحك قوامًا مقرمشًا ونكهة متوازنة. خيار صحي ومغذٍ، مناسب للرياضيين ولوجبة الإفطار أو كوجبة خفيفة خلال اليوم.",
     descriptionEn:
       "A house granola prepared and roasted in the café, with oats, nuts, seeds, and dried fruit. Crisp texture and a balanced flavor. A nourishing option for breakfast or a snack.",
-    price: 59,
+    price: 26,
     category: "merch",
-    image: "/products/las-granola/granola.png",
-    images: ["/products/las-granola/granola.png"],
+    image: "/products/las-granola/granola-jar.png",
+    images: ["/products/las-granola/granola-jar.png"],
     specs: [
       "التحضير: تُحضّر وتُحمّص داخل المقهى.",
       "المكونات: الشوفان، المكسرات،زبيب.",

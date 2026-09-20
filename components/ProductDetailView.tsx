@@ -97,7 +97,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                   : product.slug === "las-granola"
                     ? "object-contain"
                     : product.slug === "las-mug"
-                      ? "object-contain mix-blend-multiply"
+                      ? "object-contain"
                       : "object-contain p-6"
               }
               priority
@@ -105,14 +105,14 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             />
           ) : null}
           {product.badge && (
-            <span className="absolute right-4 top-4 bg-las-accent px-3 py-1 text-xs font-medium tracking-wide text-white">
+            <span className="absolute right-4 top-4 bg-las-accent px-3 py-1 text-xs font-semibold text-white">
               {product.badge}
             </span>
           )}
         </div>
 
         {galleryImages.length > 1 && (
-          <div className="flex gap-2">
+          <div className="flex gap-2" key={selectedColorId || "gallery"}>
             {galleryImages.map((img, index) => (
               <button
                 key={img}
@@ -220,7 +220,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
         {product.specs && product.specs.length > 0 && !isBean && (
           <div className="border border-las-border bg-las-bg p-6">
-            <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-las-primary">
+            <h2 className="mb-4 text-sm font-bold text-las-primary">
               {t("specs")}
             </h2>
             <ul className="space-y-2.5 text-sm leading-relaxed text-las-muted">
@@ -276,7 +276,7 @@ export function ProductPageShell({ product }: ProductPageShellProps) {
 
         <Link
           href={`/?category=${product.category}`}
-          className="mb-6 inline-flex text-xs font-semibold uppercase tracking-wider text-las-accent hover:text-las-accent-hover"
+          className="mb-6 inline-flex text-xs font-bold text-las-accent hover:text-las-accent-hover"
         >
           {getCategoryLabel(product.category as CategoryId, locale, "section")}
         </Link>

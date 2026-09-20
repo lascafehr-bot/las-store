@@ -10,10 +10,10 @@ export function BrandMark({ href = "/", size = "md" }: BrandMarkProps) {
     <Link
       href={href}
       aria-label="LAS CAFE"
-      className="inline-flex isolate shrink-0 bg-las-bg ps-0.5"
+      className="inline-flex shrink-0"
     >
       <img
-        src="/brand/las-cafe-logo.jpg?v=6"
+        src="/brand/las-cafe-logo.png?v=8"
         alt="LAS CAFE"
         width={201}
         height={150}

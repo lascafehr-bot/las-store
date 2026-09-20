@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/LocaleProvider";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { CATEGORIES, POLICIES, STORE_CONFIG } from "@/lib/config";
 import { getCategoryLabel, getPolicyTitle } from "@/lib/i18n";
 
@@ -34,7 +35,7 @@ export function HeaderMenu() {
     <>
       <button
         type="button"
-        className="inline-flex h-10 w-10 items-center justify-center text-las-primary transition-colors hover:text-las-accent"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-las-primary transition-colors hover:text-las-accent"
         aria-label={t("menu")}
         aria-expanded={open}
         aria-controls={panelId}
@@ -56,6 +57,9 @@ export function HeaderMenu() {
             className="absolute inset-y-0 end-0 flex w-[min(20.5rem,88vw)] flex-col border-s border-las-border bg-las-bg px-6 py-8 shadow-las"
             aria-label={t("menu")}
           >
+            <div className="mb-8 sm:hidden">
+              <LanguageSwitch />
+            </div>
             <div className="flex flex-col gap-3 text-sm text-las-primary">
               <a
                 href={STORE_CONFIG.websiteUrl}

@@ -35,7 +35,7 @@ export function StoreCatalog() {
             return (
               <section key={cat.id}>
                 <div className="mb-8 flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-semibold tracking-tight text-las-primary sm:text-3xl">
+                  <h2 className="text-base font-bold text-las-primary sm:text-lg">
                     {getCategoryLabel(cat.id, locale, "section")}
                   </h2>
                   <Link
@@ -68,7 +68,7 @@ export function StoreCatalog() {
         <p className="py-20 text-center text-las-muted">{t("noProductsInCategory")}</p>
       ) : (
         <>
-          <h2 className="mb-8 text-2xl font-semibold tracking-tight text-las-primary sm:text-3xl">
+          <h2 className="mb-8 text-base font-bold text-las-primary sm:text-lg">
             {getCategoryLabel(active, locale, "section")}
           </h2>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">

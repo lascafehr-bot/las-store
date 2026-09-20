@@ -21,8 +21,8 @@ export function Price({ amount, size = "card", hint }: PriceProps) {
     size === "detail"
       ? "text-2xl font-bold"
       : size === "inline"
-        ? "text-sm font-semibold"
-        : "text-sm font-semibold";
+        ? "text-sm font-bold"
+        : "text-sm font-bold";
 
   const currencyClass =
     size === "detail"

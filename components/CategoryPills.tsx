@@ -42,7 +42,7 @@ function FilterLink({
       href={href}
       className={`text-sm transition-colors ${
         active
-          ? "font-semibold text-las-primary underline decoration-las-accent decoration-2 underline-offset-[6px]"
+          ? "font-bold text-las-primary underline decoration-las-accent decoration-2 underline-offset-[6px]"
           : "text-las-muted hover:text-las-primary"
       }`}
     >

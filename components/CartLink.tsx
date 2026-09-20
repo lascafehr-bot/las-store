@@ -4,19 +4,28 @@ import Link from "next/link";
 import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
 
-export function CartLink() {
+export function CartLink({ iconOnly = false }: { iconOnly?: boolean }) {
   const { itemCount } = useCart();
   const { t } = useLocale();
 
   return (
     <Link
       href="/cart"
-      className="relative inline-flex items-center gap-1.5 text-sm text-las-primary transition-colors hover:text-las-accent"
+      aria-label={t("cart")}
+      className={`relative inline-flex items-center text-las-primary transition-colors hover:text-las-accent ${
+        iconOnly
+          ? "h-9 w-9 justify-center rounded-xl"
+          : "gap-1.5 text-sm"
+      }`}
     >
       <CartIcon />
-      <span className="hidden sm:inline">{t("cart")}</span>
+      {iconOnly ? null : <span className="hidden sm:inline">{t("cart")}</span>}
       {itemCount > 0 && (
-        <span lang="en" dir="ltr" className="flex h-5 min-w-5 items-center justify-center rounded-full bg-las-accent px-1 text-[10px] font-bold text-white">
+        <span lang="en" dir="ltr" className={`flex items-center justify-center rounded-full bg-las-accent font-bold text-white ${
+          iconOnly
+            ? "absolute end-1 top-1 h-4 min-w-4 px-1 text-[10px]"
+            : "h-5 min-w-5 px-1 text-[10px]"
+        }`}>
           {itemCount}
         </span>
       )}

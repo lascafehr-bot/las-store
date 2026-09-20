@@ -1,6 +1,6 @@
 import Script from "next/script";
 import type { Metadata } from "next";
-import { Noto_Sans_Arabic, Cormorant_Garamond } from "next/font/google";
+import { Cairo, Cormorant_Garamond } from "next/font/google";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { CartProvider } from "@/components/CartProvider";
 import { Footer } from "@/components/Footer";
@@ -8,10 +8,11 @@ import { Header } from "@/components/Header";
 import { STORE_CONFIG } from "@/lib/config";
 import "./globals.css";
 
-const notoArabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-arabic",
+  display: "swap",
 });
 
 const lasBrand = Cormorant_Garamond({
@@ -46,7 +47,7 @@ export default function RootLayout({
   const gaId = STORE_CONFIG.analyticsId;
 
   return (
-    <html lang="ar" dir="rtl" className={`${notoArabic.variable} ${lasBrand.variable} h-full bg-las-bg`}>
+    <html lang="ar" dir="rtl" className={`${cairo.variable} ${lasBrand.variable} h-full bg-las-bg`}>
       <body className="flex min-h-full flex-col bg-las-bg font-sans text-las-primary antialiased">
         {gaId && (
           <>

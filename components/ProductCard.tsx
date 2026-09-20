@@ -44,7 +44,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
               product.slug === "las-granola"
                 ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                 : product.slug === "las-mug"
-                  ? "object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.02]"
+                  ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                   : product.category === "coffee"
                     ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"
                     : "object-contain p-4 transition-transform duration-500 group-hover:scale-[1.02]"
@@ -53,7 +53,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
           />
         ) : null}
         {product.badge && (
-          <span className="absolute right-3 top-3 bg-las-accent px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
+          <span className="absolute right-3 top-3 bg-las-accent px-2 py-0.5 text-[10px] font-semibold text-white">
             {product.badge}
           </span>
         )}
@@ -61,7 +61,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
 
       <div className="flex flex-1 flex-col gap-1 pt-4">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="text-sm font-medium leading-snug text-las-primary transition-colors group-hover:text-las-accent sm:text-base">
+          <h3 className="text-sm font-bold leading-snug text-las-primary transition-colors group-hover:text-las-accent">
             {name}
           </h3>
         </Link>
@@ -101,7 +101,8 @@ function CatalogAddToCart({ product }: { product: Product }) {
       image={defaultColor?.images[0] ?? product.image}
       color={colorLabel}
       weight={weightText}
-      className="mt-2 rounded-sm border border-las-primary px-3 py-2 text-xs font-semibold text-las-primary hover:bg-las-primary/5 hover:text-las-primary sm:text-xs"
+      className="mt-3 rounded-full bg-las-accent px-3 py-2.5 text-xs font-bold text-white hover:bg-las-accent-hover"
+      showIcon
     />
   );
 }
