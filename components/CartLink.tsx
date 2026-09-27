@@ -12,10 +12,10 @@ export function CartLink({ iconOnly = false }: { iconOnly?: boolean }) {
     <Link
       href="/cart"
       aria-label={t("cart")}
-      className={`relative inline-flex items-center text-las-primary transition-colors hover:text-las-accent ${
+      className={`relative inline-flex items-center transition-colors ${
         iconOnly
-          ? "h-9 w-9 justify-center rounded-xl"
-          : "gap-1.5 text-sm"
+          ? "h-9 w-9 justify-center rounded-xl text-black hover:text-black/70"
+          : "gap-1.5 text-sm text-las-primary hover:text-las-accent"
       }`}
     >
       <CartIcon />

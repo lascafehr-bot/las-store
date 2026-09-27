@@ -10,7 +10,7 @@
   --las-accent-hover: #8f6f5c;
   --las-muted: #7a6d66;
   --las-border: rgba(61, 72, 100, 0.14);
-  --las-bar: color-mix(in srgb, var(--las-accent) 38%, var(--las-bg));
+  --las-bar: var(--las-accent);
 }
 
 @theme inline {

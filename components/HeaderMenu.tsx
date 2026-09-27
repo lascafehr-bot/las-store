@@ -35,7 +35,7 @@ export function HeaderMenu() {
     <>
       <button
         type="button"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-las-primary transition-colors hover:text-las-accent"
+        className="relative z-[80] inline-flex h-9 w-9 items-center justify-center rounded-xl text-black transition-colors hover:text-black/70"
         aria-label={t("menu")}
         aria-expanded={open}
         aria-controls={panelId}

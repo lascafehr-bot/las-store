@@ -113,8 +113,8 @@ export const PRODUCTS: Product[] = [
       "A house granola prepared and roasted in the café, with oats, nuts, seeds, and dried fruit. Crisp texture and a balanced flavor. A nourishing option for breakfast or a snack.",
     price: 26,
     category: "merch",
-    image: "/products/las-granola/granola-jar.png",
-    images: ["/products/las-granola/granola-jar.png"],
+    image: "/products/las-granola/granola-cream.png",
+    images: ["/products/las-granola/granola-cream.png"],
     specs: [
       "التحضير: تُحضّر وتُحمّص داخل المقهى.",
       "المكونات: الشوفان، المكسرات،زبيب.",
@@ -350,6 +350,43 @@ export const PRODUCTS: Product[] = [
     weights: [
       { id: "125g", label: "125غم", labelEn: "125g", price: 43 },
       { id: "1kg", label: "1كغم", labelEn: "1kg", price: 225 },
+    ],
+    featured: true,
+  },
+  {
+    id: "9",
+    slug: "uganda-rwenzori",
+    name: "أوغندا - روينزوري - مجفف",
+    nameEn: "Uganda — Rwenzori Natural",
+    description:
+      "من أوغندا، يأتي محصول روينزوري بطابع غني ومتوازن، يجمع بين حلاوة العسل وإيحاءات الفواكه المجففة والكاكاو، مع قوام ممتلئ يمنح الكوب حضورًا واضحًا ونهاية متناسقة.",
+    descriptionEn:
+      "From Uganda, Rwenzori has a rich, balanced character of honey sweetness, dried fruit, and cacao, with a full body and a clear, even finish.",
+    price: 37,
+    category: "coffee",
+    image: "/products/uganda-rwenzori/store.png",
+    images: [
+      "/products/uganda-rwenzori/store.png",
+      "/products/uganda-rwenzori/life-1.jpg",
+      "/products/uganda-rwenzori/life-2.jpg",
+    ],
+    coffeeProfile: {
+      origin: { ar: "أوغندا", en: "Uganda" },
+      process: { ar: "مجفف", en: "Natural" },
+      processDescription: {
+        ar: "تخضع الحبوب للمعالجة المجففة، مما يبرز حلاوتها الطبيعية ويعزز طابع الفواكه المجففة والكاكاو، مع الحفاظ على قوام ممتلئ وغني.",
+        en: "The beans are naturally processed, which brings out their sweetness and dried fruit and cacao, while keeping a full, rich body.",
+      },
+      flavors: {
+        ar: "عسل • فواكه مجففة • كاكاو • قوام ممتلئ",
+        en: "Honey • dried fruit • cacao • full body",
+      },
+      brew: { ar: "مناسب للـ V60 والإسبريسو", en: "Suitable for V60 and espresso" },
+      weight: { ar: "250 جم", en: "250g" },
+    },
+    weights: [
+      { id: "250g", label: "250غم", labelEn: "250g", price: 37 },
+      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 120 },
     ],
     featured: true,
   },
