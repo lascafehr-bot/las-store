@@ -2,9 +2,6 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import { Cairo, Cormorant_Garamond } from "next/font/google";
 import { LocaleProvider } from "@/components/LocaleProvider";
-import { CartProvider } from "@/components/CartProvider";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { STORE_CONFIG } from "@/lib/config";
 import "./globals.css";
 
@@ -29,7 +26,10 @@ export const metadata: Metadata = {
   },
   description: "متجر لاس — محاصيل، منتجات، وبوكسات عروض. تسوّق ببساطة.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon.png", type: "image/png", sizes: "180x180" },
+    ],
     apple: "/media/apple-touch-icon.png",
   },
   openGraph: {
@@ -38,6 +38,14 @@ export const metadata: Metadata = {
     locale: "ar_SA",
     siteName: STORE_CONFIG.name,
     url: STORE_CONFIG.storeUrl,
+    images: [
+      {
+        url: "/media/og-share.png",
+        width: 512,
+        height: 512,
+        alt: "LAS CAFE",
+      },
+    ],
   },
 };
 
@@ -57,13 +65,7 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        <LocaleProvider>
-          <CartProvider>
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </CartProvider>
-        </LocaleProvider>
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );
