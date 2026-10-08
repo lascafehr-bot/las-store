@@ -72,13 +72,13 @@ export const PRODUCTS: Product[] = [
     image: "/products/las-mug/grey-face.jpg",
     images: [
       "/products/las-mug/grey-face.jpg",
-      "/products/las-mug/grey-side.png",
+      "/products/las-mug/grey-side.jpg",
       "/products/las-mug/grey-car.jpg",
       "/products/las-mug/grey-gym.jpg",
       "/products/las-mug/beige-table.jpg",
       "/products/las-mug/beige-beans.jpg",
-      "/products/las-mug/beige-front.png",
-      "/products/las-mug/beige-side.png",
+      "/products/las-mug/beige-front.jpg",
+      "/products/las-mug/beige-side.jpg",
     ],
     colors: [
       {
@@ -88,7 +88,7 @@ export const PRODUCTS: Product[] = [
         swatch: "#4a4a4a",
         images: [
           "/products/las-mug/grey-face.jpg",
-          "/products/las-mug/grey-side.png",
+          "/products/las-mug/grey-side.jpg",
           "/products/las-mug/grey-car.jpg",
           "/products/las-mug/grey-gym.jpg",
         ],
@@ -101,8 +101,8 @@ export const PRODUCTS: Product[] = [
         images: [
           "/products/las-mug/beige-table.jpg",
           "/products/las-mug/beige-beans.jpg",
-          "/products/las-mug/beige-front.png",
-          "/products/las-mug/beige-side.png",
+          "/products/las-mug/beige-front.jpg",
+          "/products/las-mug/beige-side.jpg",
         ],
       },
     ],
