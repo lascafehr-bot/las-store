@@ -6,8 +6,11 @@ alter table public.orders
   add column if not exists payment_gateway text not null default '',
   add column if not exists payment_response_code text not null default '',
   add column if not exists paid_at timestamptz,
+  add column if not exists payment_checked_at timestamptz,
   add column if not exists customer_notes text not null default '';
 
+-- payment_gateway is 'alinmapay' for live payments and 'alinmapay-sandbox' for sandbox ones, so test
+-- payments can never be mistaken for real money.
 -- payment_status values written by the store backend:
 --   pending | paid | failed | cancelled | review (gateway says paid but order/amount did not match)
 

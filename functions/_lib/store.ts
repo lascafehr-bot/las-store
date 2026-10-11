@@ -1,7 +1,7 @@
 // Server-side order persistence (Supabase PostgREST with the service-role key) and pricing.
 import { getBeanWeights, getProductBySlug, isBeanProduct } from "../../lib/products";
 import type { Env } from "./env";
-import { formatAmount, inquirePayment } from "./alinmapay";
+import { formatAmount, gatewayLabel, inquirePayment } from "./alinmapay";
 
 export type ClientItem = { slug: string; color?: string; weight?: string; quantity: number };
 export type PricedItem = { name: string; unit_price: number; quantity: number; slug: string; options: string };
@@ -120,6 +120,20 @@ export async function setPaymentReference(env: Env, orderNumber: string, transac
   });
 }
 
+/**
+ * Atomically "claims" the right to ask AlinmaPay about an order, at most once per `minSeconds`.
+ * Stops anyone hammering the public status endpoint from turning into a flood of gateway calls.
+ */
+export async function claimInquiry(env: Env, orderNumber: string, minSeconds: number): Promise<boolean> {
+  const cutoff = new Date(Date.now() - minSeconds * 1000).toISOString();
+  const rows = await rest<unknown[]>(
+    env,
+    `orders?order_number=eq.${orderNumber}&payment_status=eq.pending&or=(payment_checked_at.is.null,payment_checked_at.lt.${cutoff})`,
+    { method: "PATCH", prefer: "return=representation", body: JSON.stringify({ payment_checked_at: new Date().toISOString() }) },
+  );
+  return Array.isArray(rows) && rows.length > 0;
+}
+
 /** Moves a *pending* order to its final state; a settled order is never overwritten. */
 async function settle(
   env: Env,
@@ -132,6 +146,7 @@ async function settle(
     body: JSON.stringify({
       payment_status: status,
       payment_response_code: responseCode,
+      payment_gateway: gatewayLabel(env),
       ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}),
     }),
   });

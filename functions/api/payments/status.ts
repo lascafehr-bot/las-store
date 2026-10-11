@@ -1,7 +1,7 @@
 // GET /api/payments/status?order=LAS... — verified payment state for the confirmation page.
 // If the order is still pending it asks AlinmaPay (Inquiry) first, so a missed callback cannot leave it stale.
 import { requireEnv, type Env, type PagesFunction } from "../../_lib/env";
-import { getOrder, reconcileOrder } from "../../_lib/store";
+import { claimInquiry, getOrder, reconcileOrder } from "../../_lib/store";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
@@ -16,7 +16,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     let status = order.payment_status;
     if (status === "pending") {
       try {
-        status = await reconcileOrder(env, order);
+        // At most one gateway inquiry per order every 5 seconds, however often this endpoint is called.
+        if (await claimInquiry(env, order.order_number, 5)) status = await reconcileOrder(env, order);
       } catch (err) {
         console.error("payments/status inquiry failed:", err instanceof Error ? err.message : err);
       }
