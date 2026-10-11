@@ -52,7 +52,9 @@ async function rest<T = unknown>(env: Env, path: string, init: RequestInit & { p
     ...rest,
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      // Legacy service_role keys are JWTs and go in both headers. The newer sb_secret_… keys are NOT JWTs:
+      // Supabase documents them as apikey-header only, so no Authorization header is sent for those.
+      ...(env.SUPABASE_SERVICE_ROLE_KEY.startsWith("eyJ") ? { Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}` } : {}),
       "Content-Type": "application/json",
       ...(prefer ? { Prefer: prefer } : {}),
     },

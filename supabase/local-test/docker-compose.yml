@@ -1,0 +1,33 @@
+# LOCAL TEST ONLY — zero cost, nothing here touches your real Supabase project.
+# Reachable only from this computer (127.0.0.1). The secrets below are throw-away test values.
+name: las-local-test
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: local-test-postgres
+    ports: ["127.0.0.1:54329:5432"]
+    volumes:
+      - ./00-supabase-compat.sql:/docker-entrypoint-initdb.d/00-supabase-compat.sql:ro
+      - ../migrations/20261001_lascore_phase1.sql:/docker-entrypoint-initdb.d/10-lascore-phase1.sql:ro
+      - ../migrations/20261011_alinmapay_payments.sql:/docker-entrypoint-initdb.d/20-alinmapay-payments.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  postgrest:
+    image: postgrest/postgrest:latest
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:local-test-authenticator@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: "local-test-only-jwt-secret-not-used-anywhere-else-1234567890"
+  gateway:
+    image: nginx:alpine
+    depends_on: [postgrest]
+    ports: ["127.0.0.1:54321:80"]
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

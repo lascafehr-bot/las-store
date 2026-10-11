@@ -84,12 +84,13 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 
 Run `npm run check:payments` to see which settings are present, by name only (no values are printed).
 
-**Keep sandbox and live apart.** In Cloudflare Pages, put the sandbox values only under the **Preview**
-environment and leave **Production** without them until go-live. Use a separate *test* Supabase project
-for sandbox runs so test orders never mix with real customers. Orders record `alinmapay-sandbox` or
-`alinmapay` in `orders.payment_gateway`.
+**Keep sandbox and live apart.** Sandbox payments must never write into the real Supabase project (it is shared with
+LAS Portal). Test against the **local test database** in `supabase/local-test` (free, runs on your PC). With
+`ALINMAPAY_ENV=sandbox` the server refuses a hosted `SUPABASE_URL` unless `ALLOW_SANDBOX_ON_HOSTED_DB=true` is set
+deliberately (only for a dedicated test project). In Cloudflare Pages keep sandbox values under **Preview** only.
+Orders record `alinmapay-sandbox` or `alinmapay` in `orders.payment_gateway`.
 
-### Database (once per Supabase project)
+### Database (real project, at go-live only)
 
 Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
 in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
@@ -97,18 +98,20 @@ in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `
 `BAD_SIGNATURE` (AlinmaPay's response signature was missing or did not verify — a payment is never accepted without a valid one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one). `failed` + `INIT_FAILED`
 means the gateway rejected the request and nothing was charged.
 
-### Sandbox test (local, nothing is deployed)
+### Sandbox test (local, nothing is deployed, nothing real is touched)
 
-0. Needs **Node.js 22 or newer** (`node -v`) — Cloudflare's `wrangler` requires it — and `npm ci` once in the project folder.
-1. Create a **test** Supabase project and run the two migrations above.
+0. Needs **Node.js 22 or newer** (`node -v`, Cloudflare's `wrangler` requires it), **Docker** (Docker Desktop, or Docker Engine
+   in WSL2), and `npm ci` once in the project folder.
+1. Start the local test database: `cd supabase\local-test`, then `docker compose up -d` (details and test keys in
+   `supabase/local-test/README.md`). It runs the repo's real migrations on a throw-away database.
 2. `copy .dev.vars.example .dev.vars` and fill it in: `ALINMAPAY_ENV=sandbox`, the sandbox credentials,
-   `SITE_URL=http://localhost:8788`, the test Supabase URL and service-role key.
+   `SITE_URL=http://localhost:8788`, `SUPABASE_URL=http://127.0.0.1:54321`, and the **test** key from the kit's README.
 3. `npm run check:payments` — fix every FAIL.
 4. `npm run preview` (`next dev` does **not** run `/functions`), open http://localhost:8788, add a product, check out.
 5. On AlinmaPay's page use the sandbox test card: `4111 1111 1111 1111`, CVV `100`, expiry `01/39`
    (or `5123 4500 0000 0008`).
-6. Expected: you return to the confirmation page showing *Order confirmed*, the cart is empty, and in Supabase the
-   order is `paid` with gateway `alinmapay-sandbox`. (If the signature check fails you will see *Order under review* instead — see step 8.)
+6. Expected: you return to the confirmation page showing *Order confirmed*, the cart is empty, and in the local database the
+   order is `paid` with gateway `alinmapay-sandbox` (from `supabase\local-test`: `docker compose exec db psql -U postgres -c "select order_number,payment_status,payment_gateway from orders order by created_at desc limit 5;"`). (If the signature check fails you will see *Order under review* instead — see step 8.)
 7. Repeat for: cancel on the payment page (→ `cancelled`), a failed/declined payment (→ `failed`), closing the tab
    after paying and checking out the same cart again (→ takes you to the already-paid order, no second charge).
 8. Watch the terminal running `npm run preview`: each Inquiry logs `alinmapay signature check order=… valid=true|false`.

@@ -66,8 +66,18 @@ try {
 } catch { bad("SITE_URL is missing or not a valid URL (e.g. http://localhost:8788)"); }
 try {
   const h = new URL(env.SUPABASE_URL).hostname;
-  ok(`SUPABASE_URL -> ${h}`);
-  warn(`Confirm ${h} is your SANDBOX/TEST Supabase project, not the one holding real customer orders.`);
+  const local = ["localhost", "127.0.0.1", "[::1]", "host.docker.internal"].includes(h);
+  if (local) {
+    ok(`SUPABASE_URL -> ${h} (local test database: no real project is touched)`);
+    if (mode === "production") bad("ALINMAPAY_ENV is production but SUPABASE_URL is a local database");
+  } else {
+    ok(`SUPABASE_URL -> ${h} (hosted Supabase)`);
+    if (mode === "sandbox" && env.ALLOW_SANDBOX_ON_HOSTED_DB !== "true") {
+      bad(`sandbox payments against hosted database ${h} are blocked: use the local test kit (supabase/local-test), or set ALLOW_SANDBOX_ON_HOSTED_DB=true ONLY for a dedicated test project, never the one shared with real customers / LAS Portal`);
+    } else if (mode === "sandbox") {
+      warn(`ALLOW_SANDBOX_ON_HOSTED_DB=true: sandbox orders WILL be written to ${h}. Confirm it is not the production project.`);
+    }
+  }
 } catch { bad("SUPABASE_URL is missing or not a valid URL"); }
 
 console.log(problems ? `\n${problems} problem(s) found.` : "\nAll required settings are present and well-formed.");

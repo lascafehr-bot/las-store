@@ -6,6 +6,7 @@ ALINMAPAY_TERMINAL_ID=
 ALINMAPAY_TERMINAL_PASSWORD=
 ALINMAPAY_PAY_REQUEST_URL=https://pg.alinmapay.com.sa/SB_Transactions/v2/payments/pay-request
 SITE_URL=http://localhost:8788
-# A SANDBOX/TEST Supabase project (never the one with real customers)
-SUPABASE_URL=
+# Sandbox payments use the LOCAL test database from supabase/local-test (see its README for the test key).
+# Hosted Supabase is refused in sandbox mode unless ALLOW_SANDBOX_ON_HOSTED_DB=true (only for a dedicated test project).
+SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_SERVICE_ROLE_KEY=

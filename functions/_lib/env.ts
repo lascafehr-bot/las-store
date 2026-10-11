@@ -13,6 +13,13 @@ export interface Env {
   SITE_URL: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  // Sandbox payments normally use a LOCAL test database. Set to "true" only to deliberately write sandbox
+  // orders into a hosted Supabase project (never the one shared with real customers).
+  ALLOW_SANDBOX_ON_HOSTED_DB?: string;
+}
+
+export function isLocalHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "host.docker.internal";
 }
 
 // Minimal Cloudflare Pages Functions handler type.
@@ -36,6 +43,19 @@ export function requireEnv(env: Env): void {
   if (missing.length) throw new Error(`Missing server configuration: ${missing.join(", ")}`);
   if (env.ALINMAPAY_ENV !== "sandbox" && env.ALINMAPAY_ENV !== "production") {
     throw new Error('ALINMAPAY_ENV must be "sandbox" or "production"');
+  }
+  let dbHost: string;
+  try {
+    dbHost = new URL(env.SUPABASE_URL).hostname;
+  } catch {
+    throw new Error("SUPABASE_URL is not a valid URL");
+  }
+  // Guard against the most damaging mistake: sandbox (fake) payments recorded in the real, shared database.
+  if (env.ALINMAPAY_ENV === "sandbox" && !isLocalHost(dbHost) && env.ALLOW_SANDBOX_ON_HOSTED_DB !== "true") {
+    throw new Error("Refusing to run sandbox payments against a hosted database (set ALLOW_SANDBOX_ON_HOSTED_DB=true only for a dedicated test project)");
+  }
+  if (env.ALINMAPAY_ENV === "production" && isLocalHost(dbHost)) {
+    throw new Error("ALINMAPAY_ENV is production but SUPABASE_URL points at a local database");
   }
   if (env.ALINMAPAY_ENV === "production" && !env.ALINMAPAY_PAY_REQUEST_URL) {
     throw new Error("ALINMAPAY_PAY_REQUEST_URL must be set explicitly when ALINMAPAY_ENV is production");
