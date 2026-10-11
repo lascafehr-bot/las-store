@@ -46,10 +46,6 @@ if (mode === "sandbox" || mode === "production") ok(`ALINMAPAY_ENV = ${mode}`);
 else bad('ALINMAPAY_ENV must be exactly "sandbox" or "production"');
 if (mode === "production") warn("PRODUCTION mode: real cards will be charged. Do not use this file for sandbox testing.");
 
-const sig = env.ALINMAPAY_SIGNATURE_MODE || "log";
-if (["log", "enforce"].includes(sig)) ok(`ALINMAPAY_SIGNATURE_MODE = ${sig}${env.ALINMAPAY_SIGNATURE_MODE ? "" : " (default)"}`);
-else bad('ALINMAPAY_SIGNATURE_MODE must be "log" or "enforce"');
-
 console.log("\nEndpoints (not secret, shown so you can verify them):");
 if (!has("ALINMAPAY_PAY_REQUEST_URL")) {
   if (mode === "production") bad("ALINMAPAY_PAY_REQUEST_URL is required in production");

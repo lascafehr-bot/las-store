@@ -9,9 +9,6 @@ export interface Env {
   ALINMAPAY_ENV: string;
   // Sandbox: optional (defaults to the guide's sandbox URL). Production: required, never defaulted.
   ALINMAPAY_PAY_REQUEST_URL?: string;
-  // "log" (default): check AlinmaPay's response signature and log the result only.
-  // "enforce": a missing/invalid signature sends the order to manual review. Switch after the sandbox run proves it.
-  ALINMAPAY_SIGNATURE_MODE?: string;
   // Public https origin of the store, e.g. https://shop.lascafe.sa (used for the receipt URL).
   SITE_URL: string;
   SUPABASE_URL: string;
@@ -42,9 +39,6 @@ export function requireEnv(env: Env): void {
   }
   if (env.ALINMAPAY_ENV === "production" && !env.ALINMAPAY_PAY_REQUEST_URL) {
     throw new Error("ALINMAPAY_PAY_REQUEST_URL must be set explicitly when ALINMAPAY_ENV is production");
-  }
-  if (env.ALINMAPAY_SIGNATURE_MODE && !["log", "enforce"].includes(env.ALINMAPAY_SIGNATURE_MODE)) {
-    throw new Error('ALINMAPAY_SIGNATURE_MODE must be "log" or "enforce"');
   }
   if (!/^[0-9a-fA-F]+$/.test(env.ALINMAPAY_MERCHANT_KEY) || ![32, 48, 64].includes(env.ALINMAPAY_MERCHANT_KEY.length)) {
     throw new Error("ALINMAPAY_MERCHANT_KEY has an unexpected format (expected 32/48/64 hex characters)");

@@ -79,7 +79,6 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 | `ALINMAPAY_ENV` | **`sandbox`** or **`production`** — required, no default |
 | `ALINMAPAY_MERCHANT_KEY`, `ALINMAPAY_TERMINAL_ID`, `ALINMAPAY_TERMINAL_PASSWORD` | the credentials for that environment (AlinmaPay: same API, different keys per environment) |
 | `ALINMAPAY_PAY_REQUEST_URL` | sandbox: optional (guide's sandbox URL is used if empty). **Production: required**, the exact endpoint AlinmaPay gave you |
-| `ALINMAPAY_SIGNATURE_MODE` | `log` (default) or `enforce` — see below |
 | `SITE_URL` | public https origin, e.g. `https://shop.lascafe.sa` (local preview: `http://localhost:8788`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project; the service-role key is a secret |
 
@@ -95,11 +94,12 @@ for sandbox runs so test orders never mix with real customers. Orders record `al
 Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
 in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
 `payment_response_code` says why — `MISMATCH` (order/amount/terminal/transaction did not match),
-`BAD_SIGNATURE` (enforce mode), `DUPLICATE_PAYMENT` (same cart paid twice: refund one). `failed` + `INIT_FAILED`
+`BAD_SIGNATURE` (AlinmaPay's response signature was missing or did not verify — a payment is never accepted without a valid one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one). `failed` + `INIT_FAILED`
 means the gateway rejected the request and nothing was charged.
 
 ### Sandbox test (local, nothing is deployed)
 
+0. Needs **Node.js 22 or newer** (`node -v`) — Cloudflare's `wrangler` requires it — and `npm ci` once in the project folder.
 1. Create a **test** Supabase project and run the two migrations above.
 2. `copy .dev.vars.example .dev.vars` and fill it in: `ALINMAPAY_ENV=sandbox`, the sandbox credentials,
    `SITE_URL=http://localhost:8788`, the test Supabase URL and service-role key.
@@ -108,11 +108,13 @@ means the gateway rejected the request and nothing was charged.
 5. On AlinmaPay's page use the sandbox test card: `4111 1111 1111 1111`, CVV `100`, expiry `01/39`
    (or `5123 4500 0000 0008`).
 6. Expected: you return to the confirmation page showing *Order confirmed*, the cart is empty, and in Supabase the
-   order is `paid` with gateway `alinmapay-sandbox`.
+   order is `paid` with gateway `alinmapay-sandbox`. (If the signature check fails you will see *Order under review* instead — see step 8.)
 7. Repeat for: cancel on the payment page (→ `cancelled`), a failed/declined payment (→ `failed`), closing the tab
    after paying and checking out the same cart again (→ takes you to the already-paid order, no second charge).
-8. Watch the terminal running `npm run preview`: each paid order logs `alinmapay signature check ... valid=true|false`.
-   When real sandbox answers show `valid=true`, set `ALINMAPAY_SIGNATURE_MODE=enforce` and test once more.
+8. Watch the terminal running `npm run preview`: each Inquiry logs `alinmapay signature check order=… valid=true|false`.
+   `valid=true` is required for an order to become `paid`. If you see `valid=false` (order goes to `review` / `BAD_SIGNATURE`),
+   copy that single log line to the developer and AlinmaPay: when another formula matched it adds `otherFormulaMatched=[…]`
+   (names only, no values), which says exactly what AlinmaPay's signature is built from.
 
 If creating the payment fails, the terminal prints the gateway's code. Common ones: `201`/`202` terminal or merchant
 not found on this endpoint, `225`/`609` wrong terminal password, `904` signature/merchant-key problem,
@@ -120,7 +122,7 @@ not found on this endpoint, `225`/`609` wrong terminal password, `904` signature
 
 ### Going live checklist
 
-- Sandbox runbook above passes, including `ALINMAPAY_SIGNATURE_MODE=enforce`.
+- Sandbox runbook above passes with `valid=true` on real answers.
 - Production credentials set **only** in Cloudflare's Production environment, with `ALINMAPAY_ENV=production` and the
   exact production `ALINMAPAY_PAY_REQUEST_URL`; `SITE_URL` is the https store address; real Supabase project migrated.
 - AlinmaPay has confirmed whether the terminal needs an allow-listed server IP (code 248) — Cloudflare Workers have no

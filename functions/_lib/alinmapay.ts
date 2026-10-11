@@ -47,8 +47,8 @@ export function ceil2(value: number | string): string {
 
 /**
  * Response signature (guide §6): SHA-256( PaymentId|merchantKey|responseCode|amount ).
- * PaymentId is taken to be the gateway transactionId. The exact inputs are confirmed against real
- * sandbox responses (ALINMAPAY_SIGNATURE_MODE=log), then enforced.
+ * PaymentId is taken to be the gateway transactionId. A payment is NEVER accepted without a valid
+ * signature; if the formula turns out to differ in the real sandbox, orders go to manual review.
  */
 export async function responseSignatureValid(
   env: Env,
@@ -57,6 +57,33 @@ export async function responseSignatureValid(
   if (!r.signature || !r.transactionId || !r.responseCode || r.amount == null || r.amount === "") return false;
   const expected = await sha256Hex([r.transactionId, env.ALINMAPAY_MERCHANT_KEY, r.responseCode, ceil2(r.amount)].join("|"));
   return expected.toLowerCase() === String(r.signature).toLowerCase();
+}
+
+/**
+ * Diagnostic only, used when the guide's formula did NOT match: names which other plausible formulas would
+ * have produced the received signature. Returns names, never values, and never makes a payment acceptable.
+ */
+export async function signatureVariantsMatching(
+  env: Env,
+  r: { transactionId?: string; orderId?: string; responseCode?: string; amount?: string | number; signature?: string },
+): Promise<string[]> {
+  if (!r.signature) return [];
+  const sig = String(r.signature).toLowerCase();
+  const key = env.ALINMAPAY_MERCHANT_KEY;
+  const code = r.responseCode ?? "";
+  const amount2 = r.amount != null && r.amount !== "" ? ceil2(r.amount) : "";
+  const amountRaw = r.amount != null ? String(r.amount) : "";
+  const candidates: Record<string, string> = {
+    "orderId|key|code|amount": [r.orderId, key, code, amount2].join("|"),
+    "transactionId|key|code|amountAsReceived": [r.transactionId, key, code, amountRaw].join("|"),
+    "orderId|terminal|password|key|amount|currency": [r.orderId, env.ALINMAPAY_TERMINAL_ID, env.ALINMAPAY_TERMINAL_PASSWORD, key, amount2, CURRENCY].join("|"),
+    "transactionId|terminal|password|key|amount|currency": [r.transactionId, env.ALINMAPAY_TERMINAL_ID, env.ALINMAPAY_TERMINAL_PASSWORD, key, amount2, CURRENCY].join("|"),
+  };
+  const hits: string[] = [];
+  for (const [name, input] of Object.entries(candidates)) {
+    if ((await sha256Hex(input)) === sig) hits.push(name);
+  }
+  return hits;
 }
 
 type GatewayJson = {
@@ -138,6 +165,8 @@ export type PaymentOutcome = {
   terminalId: string;
   /** null = the response carried no signature */
   signatureValid: boolean | null;
+  /** names of other formulas that matched when the guide's did not (diagnostics only) */
+  signatureHints: string[];
 };
 
 /** §5.2 Transaction inquiry — the authoritative source of a payment's result. */
@@ -164,6 +193,16 @@ export async function inquirePayment(
         signature: res.signature,
       })
     : null;
+  const signatureHints =
+    res.signature && signatureValid === false
+      ? await signatureVariantsMatching(env, {
+          transactionId: res.transactionId,
+          orderId: res.orderDetails?.orderId,
+          responseCode: res.responseCode,
+          amount: res.amountDetails?.amount,
+          signature: res.signature,
+        })
+      : [];
   return {
     result: result === "SUCCESS" || result === "FAILURE" || result === "TIMEOUT" ? result : "UNKNOWN",
     responseCode: String(res.responseCode ?? ""),
@@ -173,6 +212,7 @@ export async function inquirePayment(
     amount: res.amountDetails?.amount != null ? formatAmount(res.amountDetails.amount) : "",
     terminalId: String(res.terminalId ?? ""),
     signatureValid,
+    signatureHints,
   };
 }
 

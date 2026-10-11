@@ -196,9 +196,12 @@ export async function reconcileOrder(env: Env, order: StoredOrder): Promise<Stor
   const out = await inquirePayment(env, { transactionId: order.payment_reference, orderId: order.order_number, amount });
 
   if (out.result === "SUCCESS" && out.responseCode === "000") {
-    // Response authenticity (guide §6): logged during the first sandbox run, enforced afterwards.
-    const enforce = env.ALINMAPAY_SIGNATURE_MODE === "enforce";
-    console.log(`alinmapay signature check order=${order.order_number} valid=${out.signatureValid} mode=${enforce ? "enforce" : "log"}`);
+    // Authenticity (guide §6): the response signature must be present and valid. No exceptions, no "log only" mode.
+    // The log line holds only the order number, a boolean and formula names — never a signature or key.
+    console.log(
+      `alinmapay signature check order=${order.order_number} valid=${out.signatureValid}` +
+        (out.signatureHints.length ? ` otherFormulaMatched=[${out.signatureHints.join("; ")}]` : ""),
+    );
 
     const matches =
       out.orderId === order.order_number &&
@@ -209,7 +212,7 @@ export async function reconcileOrder(env: Env, order: StoredOrder): Promise<Stor
       await settle(env, order.order_number, "review", "MISMATCH");
       return "review";
     }
-    if (enforce && out.signatureValid !== true) {
+    if (out.signatureValid !== true) {
       await settle(env, order.order_number, "review", "BAD_SIGNATURE");
       return "review";
     }

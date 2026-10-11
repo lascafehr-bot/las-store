@@ -5,8 +5,6 @@ ALINMAPAY_MERCHANT_KEY=
 ALINMAPAY_TERMINAL_ID=
 ALINMAPAY_TERMINAL_PASSWORD=
 ALINMAPAY_PAY_REQUEST_URL=https://pg.alinmapay.com.sa/SB_Transactions/v2/payments/pay-request
-# log = check AlinmaPay's response signature and only log the result; enforce = reject bad/missing signatures.
-ALINMAPAY_SIGNATURE_MODE=log
 SITE_URL=http://localhost:8788
 # A SANDBOX/TEST Supabase project (never the one with real customers)
 SUPABASE_URL=

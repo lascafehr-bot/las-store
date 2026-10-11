@@ -18,7 +18,7 @@ create index if not exists orders_checkout_fingerprint_idx on public.orders (che
 -- payment_status values written by the store backend:
 --   pending | paid | failed | cancelled | review
 -- 'review' + payment_response_code: MISMATCH (order/amount/terminal/transaction did not match),
---   BAD_SIGNATURE (only when ALINMAPAY_SIGNATURE_MODE=enforce), DUPLICATE_PAYMENT (same cart already paid).
+--   BAD_SIGNATURE (response signature missing or invalid), DUPLICATE_PAYMENT (same cart already paid).
 -- 'failed' + INIT_FAILED: the gateway rejected the payment request, nothing was charged.
 
 drop function if exists public.store_create_order(text, text, text, text, text, text, text, numeric, jsonb);
