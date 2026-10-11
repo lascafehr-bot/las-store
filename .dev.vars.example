@@ -1,0 +1,8 @@
+# Local secrets for `npm run preview` (wrangler pages dev). Copy to .dev.vars — it is git-ignored.
+ALINMAPAY_MERCHANT_KEY=
+ALINMAPAY_TERMINAL_ID=
+ALINMAPAY_TERMINAL_PASSWORD=
+ALINMAPAY_PAY_REQUEST_URL=https://pg.alinmapay.com.sa/SB_Transactions/v2/payments/pay-request
+SITE_URL=http://localhost:8788
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
