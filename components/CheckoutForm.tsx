@@ -6,11 +6,11 @@ import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatPrice } from "@/lib/i18n";
 import { cartItemOptions } from "@/lib/cart";
-import { generateOrderId, saveLastOrder, type Order } from "@/lib/orders";
+import { saveLastOrder, type Order } from "@/lib/orders";
 
 export function CheckoutForm() {
   const router = useRouter();
-  const { items, total, clearCart } = useCart();
+  const { items, total } = useCart();
   const { locale, t } = useLocale();
 
   const [name, setName] = useState("");
@@ -46,24 +46,54 @@ export function CheckoutForm() {
 
     setSubmitting(true);
 
-    const order: Order = {
-      id: generateOrderId(),
-      items: [...items],
-      customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
-      fulfillment: {
-        type: "delivery",
-        city: city.trim(),
-        address: address.trim(),
-      },
-      notes: notes.trim() || undefined,
-      total,
-      createdAt: new Date().toISOString(),
-      status: "confirmed",
-    };
+    try {
+      // The server re-prices the cart, saves the order and starts the AlinmaPay payment.
+      const res = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map(({ slug, color, weight, quantity }) => ({ slug, color, weight, quantity })),
+          customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
+          city: city.trim(),
+          address: address.trim(),
+          notes: notes.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.status === 409 && data?.error === "already_paid" && data.orderNumber) {
+        // This cart was already paid (e.g. the customer closed the tab after paying): show that order.
+        router.push(`/order/confirmation?id=${encodeURIComponent(data.orderNumber)}`);
+        return;
+      }
+      if (!res.ok || !data?.redirect?.url) {
+        setError(data?.error === "invalid_cart" ? t("errorCartInvalid") : t("errorPayment"));
+        setSubmitting(false);
+        return;
+      }
 
-    saveLastOrder(order);
-    clearCart();
-    router.push(`/order/confirmation?id=${order.id}`);
+      // Keep the cart until the payment is confirmed; the confirmation page clears it.
+      const order: Order = {
+        id: data.orderNumber,
+        items: [...items],
+        customer: { name: name.trim(), phone: phone.trim(), email: email.trim() },
+        fulfillment: { type: "delivery", city: city.trim(), address: address.trim() },
+        notes: notes.trim() || undefined,
+        total: data.total,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+      };
+      saveLastOrder(order);
+
+      // Hand the customer over to AlinmaPay's hosted payment page.
+      const form = document.createElement("form");
+      form.method = data.redirect.method === "GET" ? "GET" : "POST";
+      form.action = data.redirect.url;
+      document.body.appendChild(form);
+      form.submit();
+    } catch {
+      setError(t("errorPayment"));
+      setSubmitting(false);
+    }
   }
 
   return (

@@ -1,0 +1,12 @@
+# Local secrets for `npm run preview` (wrangler pages dev). Copy to .dev.vars — it is git-ignored.
+# Run `npm run check:payments` afterwards: it reports each setting by name and never prints values.
+ALINMAPAY_ENV=sandbox
+ALINMAPAY_MERCHANT_KEY=
+ALINMAPAY_TERMINAL_ID=
+ALINMAPAY_TERMINAL_PASSWORD=
+ALINMAPAY_PAY_REQUEST_URL=https://pg.alinmapay.com.sa/SB_Transactions/v2/payments/pay-request
+SITE_URL=http://localhost:8788
+# Sandbox payments use the LOCAL test database from supabase/local-test (see its README for the test key).
+# Hosted Supabase is refused in sandbox mode unless ALLOW_SANDBOX_ON_HOSTED_DB=true (only for a dedicated test project).
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_SERVICE_ROLE_KEY=
