@@ -36,7 +36,27 @@ function payRequestUrl(env: Env): string {
 
 /** Recorded on each order so sandbox (test) payments are never mistaken for real ones. */
 export function gatewayLabel(env: Env): string {
-  return payRequestUrl(env).includes("/SB_Transactions/") ? "alinmapay-sandbox" : "alinmapay";
+  return env.ALINMAPAY_ENV === "production" ? "alinmapay" : "alinmapay-sandbox";
+}
+
+/** Guide §7 Java sample: amount.setScale(2, RoundingMode.CEILING). */
+export function ceil2(value: number | string): string {
+  const n = Number(value);
+  return (Math.ceil(n * 100 - 1e-9) / 100).toFixed(2);
+}
+
+/**
+ * Response signature (guide §6): SHA-256( PaymentId|merchantKey|responseCode|amount ).
+ * PaymentId is taken to be the gateway transactionId. The exact inputs are confirmed against real
+ * sandbox responses (ALINMAPAY_SIGNATURE_MODE=log), then enforced.
+ */
+export async function responseSignatureValid(
+  env: Env,
+  r: { transactionId?: string; responseCode?: string; amount?: string | number; signature?: string },
+): Promise<boolean> {
+  if (!r.signature || !r.transactionId || !r.responseCode || r.amount == null || r.amount === "") return false;
+  const expected = await sha256Hex([r.transactionId, env.ALINMAPAY_MERCHANT_KEY, r.responseCode, ceil2(r.amount)].join("|"));
+  return expected.toLowerCase() === String(r.signature).toLowerCase();
 }
 
 type GatewayJson = {
@@ -48,6 +68,7 @@ type GatewayJson = {
   orderDetails?: { orderId?: string };
   amountDetails?: { amount?: string | number };
   terminalId?: string;
+  signature?: string;
 };
 
 async function postJson(env: Env, body: Record<string, unknown>): Promise<GatewayJson> {
@@ -115,6 +136,8 @@ export type PaymentOutcome = {
   orderId: string;
   amount: string;
   terminalId: string;
+  /** null = the response carried no signature */
+  signatureValid: boolean | null;
 };
 
 /** §5.2 Transaction inquiry — the authoritative source of a payment's result. */
@@ -133,6 +156,14 @@ export async function inquirePayment(
     order: { orderId: p.orderId },
   });
   const result = String(res.result ?? "").toUpperCase();
+  const signatureValid = res.signature
+    ? await responseSignatureValid(env, {
+        transactionId: res.transactionId,
+        responseCode: res.responseCode,
+        amount: res.amountDetails?.amount,
+        signature: res.signature,
+      })
+    : null;
   return {
     result: result === "SUCCESS" || result === "FAILURE" || result === "TIMEOUT" ? result : "UNKNOWN",
     responseCode: String(res.responseCode ?? ""),
@@ -141,6 +172,7 @@ export async function inquirePayment(
     orderId: String(res.orderDetails?.orderId ?? ""),
     amount: res.amountDetails?.amount != null ? formatAmount(res.amountDetails.amount) : "",
     terminalId: String(res.terminalId ?? ""),
+    signatureValid,
   };
 }
 
@@ -148,7 +180,13 @@ export async function inquirePayment(
  * §7 — decrypt the receipt-URL `data` field: Base64 -> AES (key = merchant key, hex -> bytes).
  * The guide's Java sample uses Cipher.getInstance("AES"), which is AES/ECB/PKCS5Padding.
  */
-export type ReceiptPayload = { transactionId?: string; orderDetails?: { orderId?: string } };
+export type ReceiptPayload = {
+  transactionId?: string;
+  responseCode?: string;
+  signature?: string;
+  amountDetails?: { amount?: string | number };
+  orderDetails?: { orderId?: string };
+};
 
 export function decryptReceipt(data: string, merchantKeyHex: string): ReceiptPayload {
   const key = Buffer.from(merchantKeyHex, "hex");

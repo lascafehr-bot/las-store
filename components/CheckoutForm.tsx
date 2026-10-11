@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
@@ -8,6 +9,7 @@ import { cartItemOptions } from "@/lib/cart";
 import { saveLastOrder, type Order } from "@/lib/orders";
 
 export function CheckoutForm() {
+  const router = useRouter();
   const { items, total } = useCart();
   const { locale, t } = useLocale();
 
@@ -58,6 +60,11 @@ export function CheckoutForm() {
         }),
       });
       const data = await res.json().catch(() => null);
+      if (res.status === 409 && data?.error === "already_paid" && data.orderNumber) {
+        // This cart was already paid (e.g. the customer closed the tab after paying): show that order.
+        router.push(`/order/confirmation?id=${encodeURIComponent(data.orderNumber)}`);
+        return;
+      }
       if (!res.ok || !data?.redirect?.url) {
         setError(data?.error === "invalid_cart" ? t("errorCartInvalid") : t("errorPayment"));
         setSubmitting(false);

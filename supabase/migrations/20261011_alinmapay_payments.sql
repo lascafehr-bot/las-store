@@ -7,12 +7,21 @@ alter table public.orders
   add column if not exists payment_response_code text not null default '',
   add column if not exists paid_at timestamptz,
   add column if not exists payment_checked_at timestamptz,
-  add column if not exists customer_notes text not null default '';
+  add column if not exists customer_notes text not null default '',
+  add column if not exists checkout_fingerprint text;
+
+-- Used to detect a customer paying twice for the same cart (same phone + items + total within 30 minutes).
+create index if not exists orders_checkout_fingerprint_idx on public.orders (checkout_fingerprint, created_at desc);
 
 -- payment_gateway is 'alinmapay' for live payments and 'alinmapay-sandbox' for sandbox ones, so test
 -- payments can never be mistaken for real money.
 -- payment_status values written by the store backend:
---   pending | paid | failed | cancelled | review (gateway says paid but order/amount did not match)
+--   pending | paid | failed | cancelled | review
+-- 'review' + payment_response_code: MISMATCH (order/amount/terminal/transaction did not match),
+--   BAD_SIGNATURE (only when ALINMAPAY_SIGNATURE_MODE=enforce), DUPLICATE_PAYMENT (same cart already paid).
+-- 'failed' + INIT_FAILED: the gateway rejected the payment request, nothing was charged.
+
+drop function if exists public.store_create_order(text, text, text, text, text, text, text, numeric, jsonb);
 
 create or replace function public.store_create_order(
   p_order_number text,
@@ -23,6 +32,8 @@ create or replace function public.store_create_order(
   p_address text,
   p_notes text,
   p_total numeric,
+  p_fingerprint text,
+  p_gateway text,
   p_items jsonb
 )
 returns uuid
@@ -38,8 +49,8 @@ begin
   values (p_full_name, coalesce(p_email, ''), coalesce(p_phone, ''), coalesce(p_city, ''), coalesce(p_address, ''))
   returning id into v_customer_id;
 
-  insert into public.orders (order_number, customer_id, total_amount, payment_status, payment_gateway, customer_notes)
-  values (p_order_number, v_customer_id, p_total, 'pending', 'alinmapay', coalesce(p_notes, ''))
+  insert into public.orders (order_number, customer_id, total_amount, payment_status, payment_gateway, customer_notes, checkout_fingerprint)
+  values (p_order_number, v_customer_id, p_total, 'pending', coalesce(p_gateway, ''), coalesce(p_notes, ''), p_fingerprint)
   returning id into v_order_id;
 
   insert into public.order_items (order_id, product_name, quantity, unit_price, subtotal)
@@ -56,5 +67,5 @@ end;
 $$;
 
 -- Only the backend (service role) may create store orders through this function.
-revoke all on function public.store_create_order(text, text, text, text, text, text, text, numeric, jsonb) from public, anon, authenticated;
-grant execute on function public.store_create_order(text, text, text, text, text, text, text, numeric, jsonb) to service_role;
+revoke all on function public.store_create_order(text, text, text, text, text, text, text, numeric, text, text, jsonb) from public, anon, authenticated;
+grant execute on function public.store_create_order(text, text, text, text, text, text, text, numeric, text, text, jsonb) to service_role;

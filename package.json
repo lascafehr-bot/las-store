@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "preview": "next build && wrangler pages dev ./out",
-    "deploy": "next build && wrangler pages deploy ./out --project-name=las-store --branch=main --commit-dirty=true"
+    "deploy": "next build && wrangler pages deploy ./out --project-name=las-store --branch=main --commit-dirty=true",
+    "check:payments": "node scripts/check-payment-env.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

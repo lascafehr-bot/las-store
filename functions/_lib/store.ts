@@ -68,7 +68,32 @@ export type StoredOrder = {
   total_amount: string | number;
   payment_status: "pending" | "paid" | "failed" | "cancelled" | "review";
   payment_reference: string;
+  checkout_fingerprint: string | null;
+  created_at: string;
 };
+
+const ORDER_COLUMNS = "order_number,total_amount,payment_status,payment_reference,checkout_fingerprint,created_at";
+
+/**
+ * Identifies "the same checkout": same phone, same cart, same total. Used to stop a customer who already
+ * paid (but closed the tab, so the cart was never cleared) from paying for the same cart twice.
+ */
+export async function checkoutFingerprint(phone: string, items: PricedItem[], total: number): Promise<string> {
+  const lines = items.map((i) => `${i.slug}|${i.options}|${i.quantity}`).sort().join(";");
+  const data = new TextEncoder().encode(`${phone.replace(/\D/g, "")}#${lines}#${total.toFixed(2)}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function findRecentOrders(env: Env, fingerprint: string, minutes = 30): Promise<StoredOrder[]> {
+  if (!/^[0-9a-f]{64}$/.test(fingerprint)) return [];
+  const since = new Date(Date.now() - minutes * 60_000).toISOString();
+  const rows = await rest<StoredOrder[]>(
+    env,
+    `orders?checkout_fingerprint=eq.${fingerprint}&created_at=gte.${since}&select=${ORDER_COLUMNS}&order=created_at.desc&limit=5`,
+  );
+  return rows ?? [];
+}
 
 export async function createOrder(
   env: Env,
@@ -82,6 +107,7 @@ export async function createOrder(
     notes: string;
     total: number;
     items: PricedItem[];
+    fingerprint: string;
   },
 ): Promise<void> {
   await rest(env, "rpc/store_create_order", {
@@ -95,6 +121,8 @@ export async function createOrder(
       p_address: o.address,
       p_notes: o.notes,
       p_total: o.total,
+      p_fingerprint: o.fingerprint,
+      p_gateway: gatewayLabel(env),
       p_items: o.items.map((i) => ({
         name: i.options ? `${i.name} (${i.options})` : i.name,
         quantity: i.quantity,
@@ -108,7 +136,7 @@ export async function getOrder(env: Env, orderNumber: string): Promise<StoredOrd
   if (!/^LAS[0-9]{8}[0-9A-F]{10}$/.test(orderNumber)) return null;
   const rows = await rest<StoredOrder[]>(
     env,
-    `orders?order_number=eq.${orderNumber}&select=order_number,total_amount,payment_status,payment_reference&limit=1`,
+    `orders?order_number=eq.${orderNumber}&select=${ORDER_COLUMNS}&limit=1`,
   );
   return rows?.[0] ?? null;
 }
@@ -152,6 +180,11 @@ async function settle(
   });
 }
 
+/** The payment could not even be started (e.g. the gateway rejected the request). */
+export async function failOrder(env: Env, orderNumber: string, code: string): Promise<void> {
+  await settle(env, orderNumber, "failed", code);
+}
+
 /**
  * Asks AlinmaPay (Inquiry, guide §5.2) what really happened and updates a pending order.
  * The decision is based only on this server-to-server answer — never on browser parameters.
@@ -163,12 +196,41 @@ export async function reconcileOrder(env: Env, order: StoredOrder): Promise<Stor
   const out = await inquirePayment(env, { transactionId: order.payment_reference, orderId: order.order_number, amount });
 
   if (out.result === "SUCCESS" && out.responseCode === "000") {
+    // Response authenticity (guide §6): logged during the first sandbox run, enforced afterwards.
+    const enforce = env.ALINMAPAY_SIGNATURE_MODE === "enforce";
+    console.log(`alinmapay signature check order=${order.order_number} valid=${out.signatureValid} mode=${enforce ? "enforce" : "log"}`);
+
     const matches =
       out.orderId === order.order_number &&
       out.terminalId === env.ALINMAPAY_TERMINAL_ID &&
+      out.transactionId === order.payment_reference &&
       formatAmount(out.amount) === amount;
-    await settle(env, order.order_number, matches ? "paid" : "review", out.responseCode);
-    return matches ? "paid" : "review";
+    if (!matches) {
+      await settle(env, order.order_number, "review", "MISMATCH");
+      return "review";
+    }
+    if (enforce && out.signatureValid !== true) {
+      await settle(env, order.order_number, "review", "BAD_SIGNATURE");
+      return "review";
+    }
+    // Same cart + phone already paid in the last 30 minutes: flag for a manual refund instead of double-fulfilling.
+    // Earlier pending orders for the same cart are checked first, so the earliest paid order always wins.
+    if (order.checkout_fingerprint) {
+      const recent = await findRecentOrders(env, order.checkout_fingerprint);
+      for (const other of recent) {
+        if (other.order_number === order.order_number) continue;
+        let state = other.payment_status;
+        if (state === "pending" && other.payment_reference && other.created_at < order.created_at) {
+          state = await reconcileOrder(env, other); // only recurses into strictly earlier orders
+        }
+        if (state === "paid") {
+          await settle(env, order.order_number, "review", "DUPLICATE_PAYMENT");
+          return "review";
+        }
+      }
+    }
+    await settle(env, order.order_number, "paid", out.responseCode);
+    return "paid";
   }
   if (out.result === "FAILURE") {
     // 624 = "Transaction canceled by the user" (guide §14)

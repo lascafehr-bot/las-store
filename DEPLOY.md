@@ -70,41 +70,61 @@ any secret: the store's `functions/` folder (Cloudflare Pages Functions) talks t
 Flow: checkout → `POST /api/payments/create` (server re-prices the cart, saves a *pending* order, requests
 a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encrypted result to
 `/api/payments/callback` → the server asks AlinmaPay (Inquiry) for the real result → order becomes
-`paid` / `failed` / `cancelled` → `/order/confirmation` shows the verified status.
+`paid` / `failed` / `cancelled` / `review` → `/order/confirmation` shows the verified status.
 
-### One-time setup
+### Settings (server-side only — Cloudflare secrets or local `.dev.vars`; never `NEXT_PUBLIC_`)
 
-1. **Database:** run `supabase/migrations/20261011_alinmapay_payments.sql` in the Supabase SQL editor
-   (after `20261001_lascore_phase1.sql`).
-2. **Cloudflare Pages → Settings → Variables and Secrets** (add as *Secret*, never `NEXT_PUBLIC_`):
+| Name | Value |
+|---|---|
+| `ALINMAPAY_ENV` | **`sandbox`** or **`production`** — required, no default |
+| `ALINMAPAY_MERCHANT_KEY`, `ALINMAPAY_TERMINAL_ID`, `ALINMAPAY_TERMINAL_PASSWORD` | the credentials for that environment (AlinmaPay: same API, different keys per environment) |
+| `ALINMAPAY_PAY_REQUEST_URL` | sandbox: optional (guide's sandbox URL is used if empty). **Production: required**, the exact endpoint AlinmaPay gave you |
+| `ALINMAPAY_SIGNATURE_MODE` | `log` (default) or `enforce` — see below |
+| `SITE_URL` | public https origin, e.g. `https://shop.lascafe.sa` (local preview: `http://localhost:8788`) |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project; the service-role key is a secret |
 
-   | Name | Value |
-   |---|---|
-   | `ALINMAPAY_MERCHANT_KEY` | merchant key from AlinmaPay |
-   | `ALINMAPAY_TERMINAL_ID` | terminal id |
-   | `ALINMAPAY_TERMINAL_PASSWORD` | terminal password |
-   | `ALINMAPAY_PAY_REQUEST_URL` | leave empty for the **sandbox**; production: `https://pg.alinmapay.com.sa/Transactions/v2/payments/pay-request` |
-   | `SITE_URL` | public https origin, e.g. `https://shop.lascafe.sa` |
-   | `SUPABASE_URL` | Supabase project URL |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key (server only) |
+Run `npm run check:payments` to see which settings are present, by name only (no values are printed).
 
-3. Deploy with `npm run deploy` (the `functions/` folder is bundled automatically; `wrangler.jsonc`
-   enables `nodejs_compat`, which the AES decryption needs).
+**Keep sandbox and live apart.** In Cloudflare Pages, put the sandbox values only under the **Preview**
+environment and leave **Production** without them until go-live. Use a separate *test* Supabase project
+for sandbox runs so test orders never mix with real customers. Orders record `alinmapay-sandbox` or
+`alinmapay` in `orders.payment_gateway`.
 
-### Test locally
+### Database (once per Supabase project)
 
-```powershell
-copy .dev.vars.example .dev.vars   # fill in the sandbox values; SITE_URL=http://localhost:8788
-npm run preview                    # http://localhost:8788  (next dev does NOT run /functions)
-```
+Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
+in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
+`payment_response_code` says why — `MISMATCH` (order/amount/terminal/transaction did not match),
+`BAD_SIGNATURE` (enforce mode), `DUPLICATE_PAYMENT` (same cart paid twice: refund one). `failed` + `INIT_FAILED`
+means the gateway rejected the request and nothing was charged.
 
-Sandbox test cards (guide §11): `4111 1111 1111 1111` (Visa) or `5123 4500 0000 0008` (MasterCard),
-CVV `100`, expiry `01/39`.
+### Sandbox test (local, nothing is deployed)
+
+1. Create a **test** Supabase project and run the two migrations above.
+2. `copy .dev.vars.example .dev.vars` and fill it in: `ALINMAPAY_ENV=sandbox`, the sandbox credentials,
+   `SITE_URL=http://localhost:8788`, the test Supabase URL and service-role key.
+3. `npm run check:payments` — fix every FAIL.
+4. `npm run preview` (`next dev` does **not** run `/functions`), open http://localhost:8788, add a product, check out.
+5. On AlinmaPay's page use the sandbox test card: `4111 1111 1111 1111`, CVV `100`, expiry `01/39`
+   (or `5123 4500 0000 0008`).
+6. Expected: you return to the confirmation page showing *Order confirmed*, the cart is empty, and in Supabase the
+   order is `paid` with gateway `alinmapay-sandbox`.
+7. Repeat for: cancel on the payment page (→ `cancelled`), a failed/declined payment (→ `failed`), closing the tab
+   after paying and checking out the same cart again (→ takes you to the already-paid order, no second charge).
+8. Watch the terminal running `npm run preview`: each paid order logs `alinmapay signature check ... valid=true|false`.
+   When real sandbox answers show `valid=true`, set `ALINMAPAY_SIGNATURE_MODE=enforce` and test once more.
+
+If creating the payment fails, the terminal prints the gateway's code. Common ones: `201`/`202` terminal or merchant
+not found on this endpoint, `225`/`609` wrong terminal password, `904` signature/merchant-key problem,
+`221`/`608`/`615` address check (AVS) fields required, `248` server IP not allowed, `304`/`305` currency not enabled.
 
 ### Going live checklist
 
-- Confirm the credentials are the **production** ones, then set `ALINMAPAY_PAY_REQUEST_URL` to the production URL.
-- Ask AlinmaPay whether the terminal needs an allow-listed server IP (guide response code 248, "Invalid
-  Merchant IpAddress"). Cloudflare Workers do not have a fixed outbound IP.
-- Make one small real payment, then check the order in Supabase (`orders.payment_status = 'paid'`).
-- Static hosting such as Netlify cannot run these functions; use Cloudflare Pages.
+- Sandbox runbook above passes, including `ALINMAPAY_SIGNATURE_MODE=enforce`.
+- Production credentials set **only** in Cloudflare's Production environment, with `ALINMAPAY_ENV=production` and the
+  exact production `ALINMAPAY_PAY_REQUEST_URL`; `SITE_URL` is the https store address; real Supabase project migrated.
+- AlinmaPay has confirmed whether the terminal needs an allow-listed server IP (code 248) — Cloudflare Workers have no
+  fixed outbound IP — and whitelisted the receipt URL domain if required.
+- A Cloudflare rate-limiting rule covers `/api/payments/*`.
+- One small real payment is made and checked in Supabase (`paid`, gateway `alinmapay`).
+- Deploy with `npm run deploy` only on Cloudflare Pages (Netlify cannot run these functions).

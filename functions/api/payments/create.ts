@@ -1,7 +1,18 @@
 // POST /api/payments/create — validates the cart, saves a pending order, starts the AlinmaPay payment.
 import { initiatePayment, formatAmount } from "../../_lib/alinmapay";
 import { requireEnv, type Env, type PagesFunction } from "../../_lib/env";
-import { HttpError, createOrder, newOrderNumber, priceItems, setPaymentReference, type ClientItem } from "../../_lib/store";
+import {
+  HttpError,
+  checkoutFingerprint,
+  createOrder,
+  failOrder,
+  findRecentOrders,
+  newOrderNumber,
+  priceItems,
+  reconcileOrder,
+  setPaymentReference,
+  type ClientItem,
+} from "../../_lib/store";
 
 // Guide §4.1 leg 2: "merchant should do the form post to target URL with payment id".
 // If the sandbox rejects POST on the hosted page, change this single value to "GET".
@@ -38,25 +49,23 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, "invalid_details");
 
     const { items, total } = priceItems(body.items);
+
+    // Duplicate-payment guard: if this exact cart (same phone) was already paid, do not start another payment.
+    const fingerprint = await checkoutFingerprint(phone, items, total);
+    for (const prior of await findRecentOrders(env, fingerprint)) {
+      const state = prior.payment_status === "pending" && prior.payment_reference ? await reconcileOrder(env, prior) : prior.payment_status;
+      if (state === "paid") return json({ error: "already_paid", orderNumber: prior.order_number }, 409);
+    }
+
     const orderNumber = newOrderNumber();
+    await createOrder(env, { orderNumber, name, email, phone, city, address, notes: clean(body.notes, 500), total, items, fingerprint });
 
-    await createOrder(env, { orderNumber, name, email, phone, city, address, notes: clean(body.notes, 500), total, items });
-
-    const payment = await initiatePayment(env, {
-      orderId: orderNumber,
-      amount: formatAmount(total),
-      description: `LAS Store order ${orderNumber}`,
-      email: email || undefined,
-      mobile: phone.replace(/[^0-9]/g, "").slice(0, 12) || undefined,
-      street: address,
-      city,
-      receiptUrl: `${new URL(env.SITE_URL).origin}/api/payments/callback`,
-    });
-
-    // Only ever send the customer to AlinmaPay's own https hosted page.
-    const host = new URL(payment.linkUrl).hostname;
-    if (new URL(payment.linkUrl).protocol !== "https:" || !(host === "alinmapay.com.sa" || host.endsWith(".alinmapay.com.sa"))) {
-      throw new Error("Unexpected hosted payment page URL");
+    let payment;
+    try {
+      payment = await initiatePaymentFor(env, { orderNumber, total, email, phone, city, address });
+    } catch (err) {
+      await failOrder(env, orderNumber, "INIT_FAILED").catch(() => undefined); // do not leave a stray pending order
+      throw err;
     }
 
     await setPaymentReference(env, orderNumber, payment.transactionId);
@@ -72,3 +81,26 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return json({ error: "payment_unavailable" }, 502);
   }
 };
+
+async function initiatePaymentFor(
+  env: Env,
+  o: { orderNumber: string; total: number; email: string; phone: string; city: string; address: string },
+) {
+  const payment = await initiatePayment(env, {
+    orderId: o.orderNumber,
+    amount: formatAmount(o.total),
+    description: `LAS Store order ${o.orderNumber}`,
+    email: o.email || undefined,
+    mobile: o.phone.replace(/[^0-9]/g, "").slice(0, 12) || undefined,
+    street: o.address,
+    city: o.city,
+    receiptUrl: `${new URL(env.SITE_URL).origin}/api/payments/callback`,
+  });
+
+  // Only ever send the customer to AlinmaPay's own https hosted page.
+  const url = new URL(payment.linkUrl);
+  if (url.protocol !== "https:" || !(url.hostname === "alinmapay.com.sa" || url.hostname.endsWith(".alinmapay.com.sa"))) {
+    throw new Error("Unexpected hosted payment page URL");
+  }
+  return payment;
+}
