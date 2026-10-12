@@ -9,6 +9,24 @@ import { ALINMAPAY_SANDBOX_URL } from "./env";
 
 export const CURRENCY = "SAR";
 
+/**
+ * Response codes (AlinmaPay "Transaction Response Codes") that mean the gateway rejected OUR request or the
+ * merchant/terminal setup (bad field, wrong password, inactive terminal, IP, ...), not the cardholder's payment.
+ * An Inquiry that answers with one of these says nothing reliable about whether the card was charged
+ * (the sandbox answered 619 / 622 for payments its own dashboard showed as Success 000), so such an order must
+ * never be settled as "failed": it goes to manual review instead.
+ * Deliberately NOT listed: 604/605/617/620 (card and cardholder input), 205/206/226 (customer blocked),
+ * 237 (session timeout), 624 (cancelled by the user), 625 (3-D Secure failed): those are real payment outcomes.
+ */
+export const INQUIRY_REQUEST_ERROR_CODES: ReadonlySet<string> = new Set([
+  "102", "103", "104", "105", "106", // gateway message mapping / field length
+  "201", "202", "203", "207", "208", // terminal, merchant, institution, original transaction, flow not found/set
+  "209", "210", "211", "212", "213", "215", // terminal / merchant / institution status
+  "224", "225", "248", "301", // login attempts, wrong terminal password, merchant IP, not allowed for terminal
+  "606", "608", "609", "610", "611", "612", "613", "614", // invalid track id, address, password, action, currency, amount, reference, user fields
+  "615", "618", "619", "621", "622", "623", // invalid city, state, country, zip, IP, email
+]);
+
 export function formatAmount(value: number | string): string {
   return Number(value).toFixed(2);
 }
@@ -183,6 +201,9 @@ export async function inquirePayment(
     amount: p.amount,
     currency: CURRENCY,
     order: { orderId: p.orderId },
+    // The gateway answers 619 (Invalid Country) to an inquiry that omits the billing country.
+    customer: { billingAddressCountry: "SA" },
+    ...(env.ALINMAPAY_MERCHANT_IP ? { merchantIp: env.ALINMAPAY_MERCHANT_IP } : {}),
   });
   const result = String(res.result ?? "").toUpperCase();
   const signatureValid = res.signature

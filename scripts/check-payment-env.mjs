@@ -40,6 +40,17 @@ if (key.startsWith("eyJ")) {
   } catch { warn("SUPABASE_SERVICE_ROLE_KEY could not be decoded; verify it is the service-role key"); }
 }
 
+console.log("\nInquiry settings:");
+const ipOk = (v) => {
+  const m = v.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  return m ? m.slice(1).every((o) => Number(o) <= 255) : v.includes(":") && /^[0-9a-fA-F:.]+$/.test(v) && v.length <= 45;
+};
+if (!has("ALINMAPAY_MERCHANT_IP")) {
+  if (env.ALINMAPAY_ENV === "production") bad("ALINMAPAY_MERCHANT_IP is MISSING (required in production: the Inquiry is rejected without it)");
+  else warn("ALINMAPAY_MERCHANT_IP is not set: the sandbox Inquiry will answer 622 and paid orders will go to review");
+} else if (ipOk(env.ALINMAPAY_MERCHANT_IP)) ok("ALINMAPAY_MERCHANT_IP is set and looks like an IP address");
+else bad("ALINMAPAY_MERCHANT_IP is set but is not a valid IPv4/IPv6 address");
+
 console.log("\nEnvironment selection:");
 const mode = env.ALINMAPAY_ENV;
 if (mode === "sandbox" || mode === "production") ok(`ALINMAPAY_ENV = ${mode}`);

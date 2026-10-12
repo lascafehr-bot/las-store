@@ -9,6 +9,10 @@ export interface Env {
   ALINMAPAY_ENV: string;
   // Sandbox: optional (defaults to the guide's sandbox URL). Production: required, never defaulted.
   ALINMAPAY_PAY_REQUEST_URL?: string;
+  // IP address of the server calling AlinmaPay. The sandbox Transaction Inquiry answers 622 "Invalid IP Address"
+  // without it (confirmed with a paid transaction: with merchantIp the same inquiry returns 000).
+  // Sandbox: optional but recommended. Production: required (and must look like an IPv4/IPv6 address).
+  ALINMAPAY_MERCHANT_IP?: string;
   // Public https origin of the store, e.g. https://shop.lascafe.sa (used for the receipt URL).
   SITE_URL: string;
   SUPABASE_URL: string;
@@ -24,6 +28,13 @@ export function isLocalHost(hostname: string): boolean {
 
 // Minimal Cloudflare Pages Functions handler type.
 export type PagesFunction<E> = (ctx: { request: Request; env: E }) => Response | Promise<Response>;
+
+/** Plain syntax check only (IPv4 with octets 0-255, or something that looks like IPv6). */
+export function looksLikeIp(value: string): boolean {
+  const v4 = value.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) return v4.slice(1).every((o) => Number(o) <= 255);
+  return value.includes(":") && /^[0-9a-fA-F:.]+$/.test(value) && value.length <= 45;
+}
 
 export const ALINMAPAY_SANDBOX_URL =
   "https://pg.alinmapay.com.sa/SB_Transactions/v2/payments/pay-request";
@@ -59,6 +70,12 @@ export function requireEnv(env: Env): void {
   }
   if (env.ALINMAPAY_ENV === "production" && !env.ALINMAPAY_PAY_REQUEST_URL) {
     throw new Error("ALINMAPAY_PAY_REQUEST_URL must be set explicitly when ALINMAPAY_ENV is production");
+  }
+  if (env.ALINMAPAY_ENV === "production" && !env.ALINMAPAY_MERCHANT_IP) {
+    throw new Error("ALINMAPAY_MERCHANT_IP must be set when ALINMAPAY_ENV is production (the Inquiry is rejected without it)");
+  }
+  if (env.ALINMAPAY_MERCHANT_IP && !looksLikeIp(env.ALINMAPAY_MERCHANT_IP)) {
+    throw new Error("ALINMAPAY_MERCHANT_IP is not a valid IPv4/IPv6 address");
   }
   if (!/^[0-9a-fA-F]+$/.test(env.ALINMAPAY_MERCHANT_KEY) || ![32, 48, 64].includes(env.ALINMAPAY_MERCHANT_KEY.length)) {
     throw new Error("ALINMAPAY_MERCHANT_KEY has an unexpected format (expected 32/48/64 hex characters)");

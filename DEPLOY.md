@@ -79,6 +79,7 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 | `ALINMAPAY_ENV` | **`sandbox`** or **`production`** — required, no default |
 | `ALINMAPAY_MERCHANT_KEY`, `ALINMAPAY_TERMINAL_ID`, `ALINMAPAY_TERMINAL_PASSWORD` | the credentials for that environment (AlinmaPay: same API, different keys per environment) |
 | `ALINMAPAY_PAY_REQUEST_URL` | sandbox: optional (guide's sandbox URL is used if empty). **Production: required**, the exact endpoint AlinmaPay gave you |
+| `ALINMAPAY_MERCHANT_IP` | IP address of the server that calls AlinmaPay, sent as `merchantIp` on the Transaction Inquiry. Without it the sandbox answers `622 Invalid IP Address` and paid orders go to `review`. Sandbox: optional but recommended. **Production: required** (the server refuses to start without it). AlinmaPay confirmed that any correctly formatted IP address is accepted in production, as in the sandbox (no fixed or allow-listed IP is needed) |
 | `SITE_URL` | public https origin, e.g. `https://shop.lascafe.sa` (local preview: `http://localhost:8788`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project; the service-role key is a secret |
 
@@ -95,8 +96,21 @@ Orders record `alinmapay-sandbox` or `alinmapay` in `orders.payment_gateway`.
 Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
 in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
 `payment_response_code` says why — `MISMATCH` (order/amount/terminal/transaction did not match),
-`BAD_SIGNATURE` (AlinmaPay's response signature was missing or did not verify — a payment is never accepted without a valid one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one). `failed` + `INIT_FAILED`
+`BAD_SIGNATURE` (no valid signature evidence — see below; a payment is never accepted without one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one),
+or a **gateway code such as `619`, `622`, `225`, `248`** (the gateway rejected *our inquiry request* or the terminal setup, so
+the payment's real result is unknown and the customer may have been charged: check it in AlinmaPay's dashboard
+(Transactions) and fix the cause, then settle the order by hand). `failed` + `INIT_FAILED`
 means the gateway rejected the request and nothing was charged.
+
+**What makes an order `paid`** (all must hold): the Inquiry answers `SUCCESS`/`000` and its order id, terminal id,
+transaction id and amount match our order, **and** there is a valid signature from one of two sources: the Inquiry
+response's own signature, or the receipt's signature. The receipt signature (`PaymentId|merchantKey|responseCode|amount`,
+guide §6) is verified in `/api/payments/callback` and only trusted if its transaction id equals the one saved when the
+payment was created, its code is `000` and its amount equals the order total. In the real sandbox the Inquiry
+response's signature does **not** validate under the documented formula, but the receipt's does, so paid orders are
+confirmed through the receipt. A payment confirmed only through the status page (callback never arrived) has no receipt
+and lands in `review`. Which codes count as "our request was rejected" is in `INQUIRY_REQUEST_ERROR_CODES`
+(`functions/_lib/alinmapay.ts`).
 
 ### Sandbox test (local, nothing is deployed, nothing real is touched)
 
@@ -114,10 +128,14 @@ means the gateway rejected the request and nothing was charged.
    order is `paid` with gateway `alinmapay-sandbox` (from `supabase\local-test`: `docker compose exec db psql -U postgres -c "select order_number,payment_status,payment_gateway from orders order by created_at desc limit 5;"`). (If the signature check fails you will see *Order under review* instead — see step 8.)
 7. Repeat for: cancel on the payment page (→ `cancelled`), a failed/declined payment (→ `failed`), closing the tab
    after paying and checking out the same cart again (→ takes you to the already-paid order, no second charge).
-8. Watch the terminal running `npm run preview`: each Inquiry logs `alinmapay signature check order=… valid=true|false`.
-   `valid=true` is required for an order to become `paid`. If you see `valid=false` (order goes to `review` / `BAD_SIGNATURE`),
-   copy that single log line to the developer and AlinmaPay: when another formula matched it adds `otherFormulaMatched=[…]`
-   (names only, no values), which says exactly what AlinmaPay's signature is built from.
+8. Watch the terminal running `npm run preview`. A paid order logs three lines (no secrets, booleans only):
+   `alinmapay receipt check … signatureValid=true verified=true`, `alinmapay inquiry … result=SUCCESS code=000`, and
+   `alinmapay signature check … valid=false receiptVerified=true` (the Inquiry's own signature is expected to be `false`
+   in the sandbox; `receiptVerified=true` is what lets the order become `paid`). If `verified=false` the order goes to
+   `review` / `BAD_SIGNATURE`: copy those log lines (names and booleans only) to the developer and AlinmaPay.
+9. Offline checks, no network or payment needed: `npm run test:payments` runs the failure scenarios (declined, cancelled,
+   duplicate callbacks, amount mismatch, bad signature, gateway errors...) against the real handlers with a fake database
+   and gateway. Run it after any change to `functions/`.
 
 If creating the payment fails, the terminal prints the gateway's code. Common ones: `201`/`202` terminal or merchant
 not found on this endpoint, `225`/`609` wrong terminal password, `904` signature/merchant-key problem,
@@ -125,11 +143,13 @@ not found on this endpoint, `225`/`609` wrong terminal password, `904` signature
 
 ### Going live checklist
 
-- Sandbox runbook above passes with `valid=true` on real answers.
+- Sandbox runbook above passes (`verified=true` on the receipt check) and `npm run test:payments` is green.
+- `ALINMAPAY_MERCHANT_IP` is set in Production to any correctly formatted IP address (AlinmaPay confirmed this is
+  enough, as in the sandbox; no fixed or allow-listed IP is needed), and AlinmaPay has confirmed what the formula of
+  the Inquiry response signature is.
 - Production credentials set **only** in Cloudflare's Production environment, with `ALINMAPAY_ENV=production` and the
   exact production `ALINMAPAY_PAY_REQUEST_URL`; `SITE_URL` is the https store address; real Supabase project migrated.
-- AlinmaPay has confirmed whether the terminal needs an allow-listed server IP (code 248) — Cloudflare Workers have no
-  fixed outbound IP — and whitelisted the receipt URL domain if required.
+- AlinmaPay has confirmed whether the receipt URL domain must be registered, and it is registered if required.
 - A Cloudflare rate-limiting rule covers `/api/payments/*`.
 - One small real payment is made and checked in Supabase (`paid`, gateway `alinmapay`).
 - Deploy with `npm run deploy` only on Cloudflare Pages (Netlify cannot run these functions).

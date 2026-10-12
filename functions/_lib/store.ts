@@ -1,7 +1,7 @@
 // Server-side order persistence (Supabase PostgREST with the service-role key) and pricing.
 import { getBeanWeights, getProductBySlug, isBeanProduct } from "../../lib/products";
 import type { Env } from "./env";
-import { formatAmount, gatewayLabel, inquirePayment } from "./alinmapay";
+import { formatAmount, gatewayLabel, INQUIRY_REQUEST_ERROR_CODES, inquirePayment } from "./alinmapay";
 
 export type ClientItem = { slug: string; color?: string; weight?: string; quantity: number };
 export type PricedItem = { name: string; unit_price: number; quantity: number; slug: string; options: string };
@@ -191,17 +191,27 @@ export async function failOrder(env: Env, orderNumber: string, code: string): Pr
  * Asks AlinmaPay (Inquiry, guide §5.2) what really happened and updates a pending order.
  * The decision is based only on this server-to-server answer — never on browser parameters.
  */
-export async function reconcileOrder(env: Env, order: StoredOrder): Promise<StoredOrder["payment_status"]> {
+export async function reconcileOrder(
+  env: Env,
+  order: StoredOrder,
+  // receiptVerified: the caller (the receipt-URL callback) has already verified the receipt's own signature
+  // (guide §6) AND that its order, transaction, amount and response code match this order.
+  opts: { receiptVerified?: boolean } = {},
+): Promise<StoredOrder["payment_status"]> {
   if (order.payment_status !== "pending" || !order.payment_reference) return order.payment_status;
 
   const amount = formatAmount(order.total_amount);
   const out = await inquirePayment(env, { transactionId: order.payment_reference, orderId: order.order_number, amount });
+  // Diagnostics only: the outcome the gateway reported (no keys, signatures or card data).
+  console.log(`alinmapay inquiry order=${order.order_number} result=${out.result} code=${out.responseCode} description="${out.description}"`);
 
   if (out.result === "SUCCESS" && out.responseCode === "000") {
-    // Authenticity (guide §6): the response signature must be present and valid. No exceptions, no "log only" mode.
-    // The log line holds only the order number, a boolean and formula names — never a signature or key.
+    // Authenticity: a valid signature (guide §6) is required, from one of two sources: the inquiry response's
+    // own signature, or the receipt's signature already verified by the callback (the inquiry signature's formula
+    // is not documented and did not validate against the real sandbox). No "log only" mode.
+    // The log line holds only the order number, booleans and formula names — never a signature or key.
     console.log(
-      `alinmapay signature check order=${order.order_number} valid=${out.signatureValid}` +
+      `alinmapay signature check order=${order.order_number} valid=${out.signatureValid} receiptVerified=${Boolean(opts.receiptVerified)}` +
         (out.signatureHints.length ? ` otherFormulaMatched=[${out.signatureHints.join("; ")}]` : ""),
     );
 
@@ -214,7 +224,7 @@ export async function reconcileOrder(env: Env, order: StoredOrder): Promise<Stor
       await settle(env, order.order_number, "review", "MISMATCH");
       return "review";
     }
-    if (out.signatureValid !== true) {
+    if (out.signatureValid !== true && opts.receiptVerified !== true) {
       await settle(env, order.order_number, "review", "BAD_SIGNATURE");
       return "review";
     }
@@ -238,6 +248,14 @@ export async function reconcileOrder(env: Env, order: StoredOrder): Promise<Stor
     return "paid";
   }
   if (out.result === "FAILURE") {
+    // The gateway rejected our inquiry request / merchant setup (e.g. 619 country, 622 IP, 225 password), which says
+    // nothing reliable about the payment itself, and the customer may well have been charged. Never settle it as
+    // "failed" (that tells them "no charge" and cannot be undone): a person checks it against the dashboard.
+    if (INQUIRY_REQUEST_ERROR_CODES.has(out.responseCode)) {
+      console.log(`alinmapay inquiry rejected order=${order.order_number} code=${out.responseCode} -> review`);
+      await settle(env, order.order_number, "review", out.responseCode);
+      return "review";
+    }
     // 624 = "Transaction canceled by the user" (guide §14)
     const status = out.responseCode === "624" ? "cancelled" : "failed";
     await settle(env, order.order_number, status, out.responseCode);
