@@ -6,7 +6,7 @@ import { claimInquiry, getOrder, reconcileOrder } from "../../_lib/store";
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
-export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   try {
     requireEnv(env);
     const orderNumber = new URL(request.url).searchParams.get("order") ?? "";
@@ -17,7 +17,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     if (status === "pending") {
       try {
         // At most one gateway inquiry per order every 5 seconds, however often this endpoint is called.
-        if (await claimInquiry(env, order.order_number, 5)) status = await reconcileOrder(env, order);
+        if (await claimInquiry(env, order.order_number, 5)) status = await reconcileOrder(env, order, { waitUntil });
       } catch (err) {
         console.error("payments/status inquiry failed:", err instanceof Error ? err.message : err);
       }

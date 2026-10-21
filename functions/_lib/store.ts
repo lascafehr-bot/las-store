@@ -2,6 +2,7 @@
 import { getBeanWeights, getProductBySlug, isBeanProduct } from "../../lib/products";
 import type { Env } from "./env";
 import { formatAmount, gatewayLabel, INQUIRY_REQUEST_ERROR_CODES, inquirePayment } from "./alinmapay";
+import { notifyOrderSettled, type EmailOrder } from "./email";
 
 export type ClientItem = { slug: string; color?: string; weight?: string; quantity: number };
 export type PricedItem = { name: string; unit_price: number; quantity: number; slug: string; options: string };
@@ -170,9 +171,10 @@ async function settle(
   orderNumber: string,
   status: "paid" | "failed" | "cancelled" | "review",
   responseCode: string,
-): Promise<void> {
-  await rest(env, `orders?order_number=eq.${orderNumber}&payment_status=eq.pending`, {
+): Promise<boolean> {
+  const rows = await rest<unknown[]>(env, `orders?order_number=eq.${orderNumber}&payment_status=eq.pending&select=order_number`, {
     method: "PATCH",
+    prefer: "return=representation",
     body: JSON.stringify({
       payment_status: status,
       payment_response_code: responseCode,
@@ -180,6 +182,47 @@ async function settle(
       ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}),
     }),
   });
+  // true only when THIS call moved the order out of "pending" (a duplicate callback finds nothing to update).
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/** The order with its customer and items, for the notification emails. */
+export async function getOrderForEmail(env: Env, orderNumber: string): Promise<EmailOrder | null> {
+  if (!/^LAS[0-9]{8}[0-9A-F]{10}$/.test(orderNumber)) return null;
+  const select =
+    "order_number,total_amount,payment_response_code,customer_notes," +
+    "customers(full_name,email,phone,city,address),order_items(product_name,quantity,unit_price,subtotal)";
+  const rows = await rest<EmailOrder[]>(env, `orders?order_number=eq.${orderNumber}&select=${select}&limit=1`);
+  return rows?.[0] ?? null;
+}
+
+/**
+ * Settles to "paid" or "review" and, only when this call really changed the order, sends the notification emails.
+ * An email problem is logged and swallowed: it can never change or undo the payment outcome.
+ */
+async function settleAndNotify(
+  env: Env,
+  orderNumber: string,
+  status: "paid" | "review",
+  responseCode: string,
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<void> {
+  const changed = await settle(env, orderNumber, status, responseCode);
+  if (!changed) return;
+  if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
+    console.log(`order email skipped order=${orderNumber} (email not configured)`);
+    return;
+  }
+  const job = (async () => {
+    try {
+      const order = await getOrderForEmail(env, orderNumber);
+      if (order) await notifyOrderSettled(env, order, status);
+    } catch (err) {
+      console.error(`order email failed order=${orderNumber}: ${err instanceof Error ? err.message : "error"}`);
+    }
+  })();
+  if (waitUntil) waitUntil(job);
+  else await job;
 }
 
 /** The payment could not even be started (e.g. the gateway rejected the request). */
@@ -196,7 +239,7 @@ export async function reconcileOrder(
   order: StoredOrder,
   // receiptVerified: the caller (the receipt-URL callback) has already verified the receipt's own signature
   // (guide §6) AND that its order, transaction, amount and response code match this order.
-  opts: { receiptVerified?: boolean } = {},
+  opts: { receiptVerified?: boolean; waitUntil?: (promise: Promise<unknown>) => void } = {},
 ): Promise<StoredOrder["payment_status"]> {
   if (order.payment_status !== "pending" || !order.payment_reference) return order.payment_status;
 
@@ -221,11 +264,11 @@ export async function reconcileOrder(
       out.transactionId === order.payment_reference &&
       formatAmount(out.amount) === amount;
     if (!matches) {
-      await settle(env, order.order_number, "review", "MISMATCH");
+      await settleAndNotify(env, order.order_number, "review", "MISMATCH", opts.waitUntil);
       return "review";
     }
     if (out.signatureValid !== true && opts.receiptVerified !== true) {
-      await settle(env, order.order_number, "review", "BAD_SIGNATURE");
+      await settleAndNotify(env, order.order_number, "review", "BAD_SIGNATURE", opts.waitUntil);
       return "review";
     }
     // Same cart + phone already paid in the last 30 minutes: flag for a manual refund instead of double-fulfilling.
@@ -239,12 +282,12 @@ export async function reconcileOrder(
           state = await reconcileOrder(env, other); // only recurses into strictly earlier orders
         }
         if (state === "paid") {
-          await settle(env, order.order_number, "review", "DUPLICATE_PAYMENT");
+          await settleAndNotify(env, order.order_number, "review", "DUPLICATE_PAYMENT", opts.waitUntil);
           return "review";
         }
       }
     }
-    await settle(env, order.order_number, "paid", out.responseCode);
+    await settleAndNotify(env, order.order_number, "paid", out.responseCode, opts.waitUntil);
     return "paid";
   }
   if (out.result === "FAILURE") {
@@ -253,7 +296,7 @@ export async function reconcileOrder(
     // "failed" (that tells them "no charge" and cannot be undone): a person checks it against the dashboard.
     if (INQUIRY_REQUEST_ERROR_CODES.has(out.responseCode)) {
       console.log(`alinmapay inquiry rejected order=${order.order_number} code=${out.responseCode} -> review`);
-      await settle(env, order.order_number, "review", out.responseCode);
+      await settleAndNotify(env, order.order_number, "review", out.responseCode, opts.waitUntil);
       return "review";
     }
     // 624 = "Transaction canceled by the user" (guide §14)

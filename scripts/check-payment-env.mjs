@@ -51,6 +51,18 @@ if (!has("ALINMAPAY_MERCHANT_IP")) {
 } else if (ipOk(env.ALINMAPAY_MERCHANT_IP)) ok("ALINMAPAY_MERCHANT_IP is set and looks like an IP address");
 else bad("ALINMAPAY_MERCHANT_IP is set but is not a valid IPv4/IPv6 address");
 
+console.log("\nOrder emails (owner alert + customer receipt):");
+const emailKeys = ["RESEND_API_KEY", "EMAIL_FROM", "ORDER_ALERT_EMAIL"];
+const emailMissing = emailKeys.filter((k) => !has(k));
+if (emailMissing.length === 0) {
+  ok("RESEND_API_KEY, EMAIL_FROM and ORDER_ALERT_EMAIL are set");
+  if (!/^[^\s@<>",;]+@[^\s@<>",;]+\.[^\s@<>",;]+$/.test(env.ORDER_ALERT_EMAIL)) bad("ORDER_ALERT_EMAIL does not look like an email address");
+} else if (env.ALINMAPAY_ENV === "production") {
+  bad(`${emailMissing.join(", ")} MISSING: without them nobody is told when an order is paid`);
+} else {
+  warn(`${emailMissing.join(", ")} not set: no order emails will be sent (fine for local tests)`);
+}
+
 console.log("\nEnvironment selection:");
 const mode = env.ALINMAPAY_ENV;
 if (mode === "sandbox" || mode === "production") ok(`ALINMAPAY_ENV = ${mode}`);

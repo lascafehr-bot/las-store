@@ -55,6 +55,8 @@ let gatewayBodies = [];
 let gatewayImpl = () => {
   throw new Error("gateway not expected");
 };
+let emails = [];
+let resendImpl = () => new Response(JSON.stringify({ id: "email-id" }), { status: 200 });
 const realFetch = globalThis.fetch;
 const realLog = console.log;
 const realError = console.error;
@@ -66,6 +68,11 @@ const fakeFetch = async (url, init = {}) => {
     const body = JSON.parse(init.body);
     gatewayBodies.push(body);
     return gatewayImpl(body);
+  }
+  if (url.startsWith("https://api.resend.com/")) {
+    const body = JSON.parse(init.body);
+    emails.push({ authorization: init.headers?.Authorization, ...body });
+    return resendImpl(body);
   }
   const u = new URL(url);
   const table = u.pathname.replace("/rest/v1/", "");
@@ -101,6 +108,8 @@ after(() => {
   console.error = realError;
 });
 beforeEach(() => {
+  emails = [];
+  resendImpl = () => new Response(JSON.stringify({ id: "email-id" }), { status: 200 });
   gatewayCalls = 0;
   gatewayBodies = [];
   gatewayImpl = () => {
@@ -123,6 +132,10 @@ const mkOrder = (o = {}) => {
     checkout_fingerprint: null,
     created_at: new Date().toISOString(),
     payment_checked_at: null,
+    payment_response_code: "",
+    customer_notes: "",
+    customers: { full_name: "Test Customer", email: "customer@example.test", phone: "0500000000", city: "Riyadh", address: "1 Test St" },
+    order_items: [{ product_name: "Uganda (250g)", quantity: 2, unit_price: "37.00", subtotal: "74.00" }],
     ...o,
   };
   db.set(order.order_number, order);
@@ -142,15 +155,19 @@ const receipt = (order, o = {}) => {
   const cipher = createCipheriv("aes-256-ecb", Buffer.from(o.encKey ?? KEY, "hex"), null);
   return Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]).toString("base64");
 };
-const post = async (data, termId = env.ALINMAPAY_TERMINAL_ID) => {
+const post = async (data, termId = env.ALINMAPAY_TERMINAL_ID, opts = {}) => {
   const form = new FormData();
   if (data != null) form.set("data", data);
   if (termId != null) form.set("termId", termId);
-  const res = await cb.onRequestPost({ request: new Request("http://localhost:8788/api/payments/callback", { method: "POST", body: form }), env });
+  const res = await cb.onRequestPost({
+    request: new Request("http://localhost:8788/api/payments/callback", { method: "POST", body: form }),
+    env: opts.env ?? env,
+    waitUntil: opts.waitUntil,
+  });
   return res.status;
 };
-const poll = async (order) => {
-  const res = await st.onRequestGet({ request: new Request(`http://localhost:8788/api/payments/status?order=${order.order_number}`), env });
+const poll = async (order, e = env) => {
+  const res = await st.onRequestGet({ request: new Request(`http://localhost:8788/api/payments/status?order=${order.order_number}`), env: e });
   return res.json();
 };
 // The real sandbox's inquiry signature does not validate under guide §6, so by default it is invalid here too.
@@ -392,11 +409,169 @@ describe("requireEnv", () => {
   });
 });
 
+// ---- order emails ----------------------------------------------------------------------------------------
+describe("order emails", () => {
+  const RESEND_KEY = "re_" + randomBytes(8).toString("hex");
+  const emailEnv = {
+    ...env,
+    RESEND_API_KEY: RESEND_KEY,
+    EMAIL_FROM: "LAS CAFE <orders@example.test>",
+    ORDER_ALERT_EMAIL: "owner@example.test",
+  };
+  const pay = async (o, opts = {}) => {
+    gatewayImpl = () => inquiry(o);
+    return post(receipt(o), env.ALINMAPAY_TERMINAL_ID, { env: emailEnv, ...opts });
+  };
+
+  test("paid -> one owner alert and one customer receipt", async () => {
+    const o = mkOrder();
+    assert.equal(await pay(o), 303);
+    assert.equal(row(o).payment_status, "paid");
+    assert.equal(emails.length, 2);
+    const owner = emails.find((e) => e.to[0] === "owner@example.test");
+    const customer = emails.find((e) => e.to[0] === "customer@example.test");
+    assert.ok(owner && customer);
+    assert.ok(owner.subject.includes(o.order_number));
+    assert.equal(owner.authorization, "Bearer " + RESEND_KEY);
+    assert.equal(owner.from, "LAS CAFE <orders@example.test>");
+    assert.ok(customer.html.includes(o.order_number) && customer.html.includes("74.00"));
+    assert.ok(customer.html.includes("ليست فاتورة ضريبية"), "the receipt must say it is not a tax invoice");
+  });
+
+  test("review -> owner alert only, with the gateway code, and no customer email", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o);
+    await post(receipt(o, { sig: "a".repeat(64) }), env.ALINMAPAY_TERMINAL_ID, { env: emailEnv });
+    assert.equal(row(o).payment_status, "review");
+    assert.equal(emails.length, 1);
+    assert.equal(emails[0].to[0], "owner@example.test");
+    assert.ok(emails[0].html.includes("BAD_SIGNATURE"));
+  });
+
+  test("a gateway complaint about our request (622) -> owner alert with the code", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o, { code: "622", result: "FAILURE" });
+    await post(receipt(o), env.ALINMAPAY_TERMINAL_ID, { env: emailEnv });
+    assert.equal(row(o).payment_status, "review");
+    assert.equal(emails.length, 1);
+    assert.ok(emails[0].html.includes("622"));
+  });
+
+  test("failed and cancelled orders send no email", async () => {
+    const a = mkOrder();
+    gatewayImpl = () => inquiry(a, { code: "605", result: "FAILURE" });
+    await post(receipt(a, { code: "605" }), env.ALINMAPAY_TERMINAL_ID, { env: emailEnv });
+    const b = mkOrder();
+    gatewayImpl = () => inquiry(b, { code: "624", result: "FAILURE" });
+    await post(receipt(b, { code: "624" }), env.ALINMAPAY_TERMINAL_ID, { env: emailEnv });
+    assert.equal(row(a).payment_status, "failed");
+    assert.equal(row(b).payment_status, "cancelled");
+    assert.equal(emails.length, 0);
+  });
+
+  test("duplicate callbacks send the emails only once", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o);
+    const d = receipt(o);
+    for (let i = 0; i < 3; i++) await post(d, env.ALINMAPAY_TERMINAL_ID, { env: emailEnv });
+    assert.equal(row(o).payment_status, "paid");
+    assert.equal(emails.length, 2);
+  });
+
+  test("two callbacks arriving at the same moment still send the emails only once", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o);
+    const d = receipt(o);
+    const results = await Promise.all([
+      post(d, env.ALINMAPAY_TERMINAL_ID, { env: emailEnv }),
+      post(d, env.ALINMAPAY_TERMINAL_ID, { env: emailEnv }),
+      post(d, env.ALINMAPAY_TERMINAL_ID, { env: emailEnv }),
+    ]);
+    assert.deepEqual(results, [303, 303, 303]);
+    assert.equal(row(o).payment_status, "paid");
+    assert.ok(gatewayCalls >= 2, "the race really happened: several callbacks asked the gateway at once");
+    assert.equal(emails.length, 2);
+  });
+
+  test("the status page path also notifies, once", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o, { validOwnSig: true });
+    assert.equal((await poll(o, emailEnv)).status, "paid");
+    assert.equal((await poll(o, emailEnv)).status, "paid");
+    assert.equal(emails.length, 2);
+  });
+
+  test("the email service answering 500 never changes the payment result", async () => {
+    const o = mkOrder();
+    resendImpl = () => new Response("down", { status: 500 });
+    assert.equal(await pay(o), 303);
+    assert.equal(row(o).payment_status, "paid");
+  });
+
+  test("the email service being unreachable never changes the payment result", async () => {
+    const o = mkOrder();
+    resendImpl = () => {
+      throw new Error("network down");
+    };
+    assert.equal(await pay(o), 303);
+    assert.equal(row(o).payment_status, "paid");
+  });
+
+  test("email not configured -> nothing is sent and the order is still paid", async () => {
+    const o = mkOrder();
+    gatewayImpl = () => inquiry(o);
+    await post(receipt(o));
+    assert.equal(row(o).payment_status, "paid");
+    assert.equal(emails.length, 0);
+  });
+
+  test("a customer without an email gets no receipt, the owner still gets the alert", async () => {
+    const o = mkOrder({ customers: { full_name: "No Email", email: "", phone: "0500000000", city: "Riyadh", address: "1 Test St" } });
+    await pay(o);
+    assert.deepEqual(emails.map((e) => e.to[0]), ["owner@example.test"]);
+  });
+
+  test("a malformed customer email (spaces, newline, extra recipient) is never used", async () => {
+    for (const bad of ["a b@example.test", "x@example.test" + String.fromCharCode(10) + "Bcc: evil@example.test", "x@example.test,evil@example.test"]) {
+      emails = [];
+      const o = mkOrder({ customers: { full_name: "Bad", email: bad, phone: "0500000000", city: "Riyadh", address: "1 Test St" } });
+      await pay(o);
+      assert.deepEqual(emails.map((e) => e.to[0]), ["owner@example.test"], bad);
+    }
+  });
+
+  test("customer-supplied HTML is escaped in both emails", async () => {
+    const o = mkOrder({
+      customer_notes: '"><img src=x onerror=alert(1)>',
+      customers: { full_name: "<script>alert(1)</script>", email: "customer@example.test", phone: "0500000000", city: "Riyadh", address: "<b>x</b>" },
+    });
+    await pay(o);
+    assert.equal(emails.length, 2);
+    for (const e of emails) {
+      assert.ok(!e.html.includes("<script>") && !e.html.includes("<img") && !e.html.includes("<b>x"), e.to[0]);
+    }
+    assert.ok(emails.find((e) => e.to[0] === "owner@example.test").html.includes("&lt;script&gt;"));
+  });
+
+  test("with waitUntil the callback does not wait for the emails, and they are still sent", async () => {
+    const o = mkOrder();
+    const pending = [];
+    assert.equal(await pay(o, { waitUntil: (p) => pending.push(p) }), 303);
+    assert.equal(pending.length, 1);
+    await Promise.all(pending);
+    assert.equal(emails.length, 2);
+  });
+});
+
 // ---- hygiene ---------------------------------------------------------------------------------------------
 describe("logs", () => {
   test("never contain the merchant key, terminal password, service key or a 64-hex signature", () => {
     const text = logs.join("\n");
     for (const secret of [KEY, PW, SERVICE_KEY]) assert.ok(!text.includes(secret));
+    assert.ok(!/re_[0-9a-f]{16}/.test(text), "the email service key must never be logged");
+    for (const personal of ["customer@example.test", "1 Test St", "0500000000", "Test Customer"]) {
+      assert.ok(!text.includes(personal), "customer data must not appear in logs: " + personal);
+    }
     assert.ok(!/[0-9a-fA-F]{64}/.test(text));
   });
 });

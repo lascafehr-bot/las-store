@@ -12,3 +12,7 @@ SUPABASE_URL=http://127.0.0.1:54321
 SUPABASE_SERVICE_ROLE_KEY=
 # IP of the machine/server calling AlinmaPay. The Inquiry needs it (without it: 622 Invalid IP Address).
 ALINMAPAY_MERCHANT_IP=
+# Order emails (Resend, https://resend.com). Optional locally; leave empty to send nothing.
+RESEND_API_KEY=
+EMAIL_FROM=LAS CAFE <orders@lascafe.sa>
+ORDER_ALERT_EMAIL=

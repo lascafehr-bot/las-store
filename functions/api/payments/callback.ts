@@ -8,7 +8,7 @@ import { getOrder, reconcileOrder, setPaymentReference } from "../../_lib/store"
 const back = (request: Request, orderNumber?: string) =>
   Response.redirect(new URL(`/order/confirmation${orderNumber ? `?id=${encodeURIComponent(orderNumber)}` : ""}`, request.url).toString(), 303);
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   try {
     requireEnv(env);
     let form: FormData;
@@ -68,7 +68,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       await setPaymentReference(env, order.order_number, String(payload.transactionId));
       order.payment_reference = String(payload.transactionId);
     }
-    await reconcileOrder(env, order, { receiptVerified });
+    await reconcileOrder(env, order, { receiptVerified, waitUntil });
     return back(request, order.order_number);
   } catch (err) {
     console.error("payments/callback failed:", err instanceof Error ? err.message : err);

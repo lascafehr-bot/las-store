@@ -80,6 +80,7 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 | `ALINMAPAY_MERCHANT_KEY`, `ALINMAPAY_TERMINAL_ID`, `ALINMAPAY_TERMINAL_PASSWORD` | the credentials for that environment (AlinmaPay: same API, different keys per environment) |
 | `ALINMAPAY_PAY_REQUEST_URL` | sandbox: optional (guide's sandbox URL is used if empty). **Production: required**, the exact endpoint AlinmaPay gave you |
 | `ALINMAPAY_MERCHANT_IP` | IP address of the server that calls AlinmaPay, sent as `merchantIp` on the Transaction Inquiry. Without it the sandbox answers `622 Invalid IP Address` and paid orders go to `review`. Sandbox: optional but recommended. **Production: required** (the server refuses to start without it). AlinmaPay confirmed that any correctly formatted IP address is accepted in production, as in the sandbox (no fixed or allow-listed IP is needed) |
+| `RESEND_API_KEY` (**secret**), `EMAIL_FROM`, `ORDER_ALERT_EMAIL` | order emails through [Resend](https://resend.com): `EMAIL_FROM` like `LAS CAFE <orders@lascafe.sa>` (the domain must be verified in Resend), `ORDER_ALERT_EMAIL` is where the owner alert goes. Optional locally (nothing is sent without the key); `npm run check:payments` fails in production if they are missing |
 | `SITE_URL` | public https origin, e.g. `https://shop.lascafe.sa` (local preview: `http://localhost:8788`) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project; the service-role key is a secret |
 
@@ -111,6 +112,16 @@ response's signature does **not** validate under the documented formula, but the
 confirmed through the receipt. A payment confirmed only through the status page (callback never arrived) has no receipt
 and lands in `review`. Which codes count as "our request was rejected" is in `INQUIRY_REQUEST_ERROR_CODES`
 (`functions/_lib/alinmapay.ts`).
+
+### Order emails
+
+When an order really becomes `paid` or `review` the server sends (once per order, even if AlinmaPay calls back several
+times): an **alert to `ORDER_ALERT_EMAIL`** with the order, items and customer details (for `review` it also shows the gateway
+code; check the payment in AlinmaPay's dashboard first, because the customer may have been charged), and, for `paid` orders
+whose customer gave an email, a **payment receipt** to the customer. The receipt says it is *not a tax invoice*.
+Nothing is sent for `failed` or `cancelled` orders. An email problem is logged by order number only and never changes a
+payment. Set it up: create a Resend account, add and verify `lascafe.sa` (Resend shows the DNS records; add them in
+Cloudflare DNS), create an API key, then add the three settings above in Cloudflare Production.
 
 ### Sandbox test (local, nothing is deployed, nothing real is touched)
 

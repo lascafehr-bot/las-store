@@ -17,6 +17,10 @@ export interface Env {
   SITE_URL: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
+  // Order emails (Resend). All optional: without RESEND_API_KEY and EMAIL_FROM no email is sent and nothing else changes.
+  RESEND_API_KEY?: string; // secret
+  EMAIL_FROM?: string; // e.g. "LAS CAFE <orders@lascafe.sa>" (the domain must be verified in Resend)
+  ORDER_ALERT_EMAIL?: string; // where the owner's "order paid / needs review" alert goes
   // Sandbox payments normally use a LOCAL test database. Set to "true" only to deliberately write sandbox
   // orders into a hosted Supabase project (never the one shared with real customers).
   ALLOW_SANDBOX_ON_HOSTED_DB?: string;
@@ -27,7 +31,12 @@ export function isLocalHost(hostname: string): boolean {
 }
 
 // Minimal Cloudflare Pages Functions handler type.
-export type PagesFunction<E> = (ctx: { request: Request; env: E }) => Response | Promise<Response>;
+export type PagesFunction<E> = (ctx: {
+  request: Request;
+  env: E;
+  // Lets background work (order emails) finish after the response has been sent. Provided by Cloudflare.
+  waitUntil?: (promise: Promise<unknown>) => void;
+}) => Response | Promise<Response>;
 
 /** Plain syntax check only (IPv4 with octets 0-255, or something that looks like IPv6). */
 export function looksLikeIp(value: string): boolean {
