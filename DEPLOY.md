@@ -87,7 +87,9 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 Run `npm run check:payments` to see which settings are present, by name only (no values are printed).
 
 **Keep sandbox and live apart.** Sandbox payments must never write into the real Supabase project (it is shared with
-LAS Portal). Test against the **local test database** in `supabase/local-test` (free, runs on your PC). With
+LAS Portal). Test against the **local test database** in `supabase/local-test` (free, runs on your PC). LAS Portal is a separate app that only shares this Supabase project; before any migration, run
+section 0 of `supabase/local-test/verify-production-schema.sql` (read-only) and review it. The migrations abort without
+changes if they find same-named tables they did not create. With
 `ALINMAPAY_ENV=sandbox` the server refuses a hosted `SUPABASE_URL` unless `ALLOW_SANDBOX_ON_HOSTED_DB=true` is set
 deliberately (only for a dedicated test project). In Cloudflare Pages keep sandbox values under **Preview** only.
 Orders record `alinmapay-sandbox` or `alinmapay` in `orders.payment_gateway`.

@@ -1,6 +1,29 @@
 -- READ-ONLY. Safe to run in the SQL editor of your REAL Supabase project: it only SELECTs from catalog views and
--- counts rows. It changes nothing. Purpose: confirm the real schema matches what the payments migration assumes,
--- before that migration is ever applied. Copy the results back so they can be compared.
+-- counts rows. It changes nothing.
+--
+-- THIS PROJECT IS SHARED with LAS Portal, a separate app. Run section 0 FIRST. If it lists any table, function,
+-- trigger or type that LASCORE would create but that was NOT created by LASCORE, STOP and do not run any migration.
+
+-- 0) COLLISION CHECK against the other app(s) in this project. Expect nothing LASCORE-owned yet on a first install.
+-- 0a) every table in public, so you can see what the other app owns
+select c.relname as table_name, c.relkind, c.relrowsecurity as rls_enabled
+from pg_class c join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind in ('r','p','v','m') order by c.relname;
+-- 0b) generic names LASCORE uses (tables, enum type, functions)
+select 'table' as kind, relname as name from pg_class c join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public' and relname in ('profiles','products','customers','orders','order_items','audit_logs')
+union all select 'type', typname from pg_type t join pg_namespace n on n.oid=t.typnamespace
+  where n.nspname='public' and typname in ('lascore_role')
+union all select 'function', proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and (proname like 'lascore\_%' or proname in ('set_updated_at','handle_new_user','store_create_order'))
+order by 1,2;
+-- 0c) every trigger on auth.users (another app may already create profile rows from it)
+select t.tgname, p.proname as function_name
+from pg_trigger t join pg_proc p on p.oid = t.tgfoid
+where t.tgrelid = 'auth.users'::regclass and not t.tgisinternal;
+-- 0d) columns of the generic-named tables, if they exist (to compare with LASCORE's)
+select table_name, column_name, data_type from information_schema.columns
+where table_schema='public' and table_name in ('profiles','products','audit_logs') order by table_name, ordinal_position;
 
 -- 1) Do the LASCORE tables exist, and with how many columns?
 select table_name, count(*) as columns

@@ -1,6 +1,18 @@
 -- LASCORE Orders: tamper-proof payment evidence + automatic audit trail.
 -- Run after 20261001_lascore_phase1.sql and 20261011_alinmapay_payments.sql. Safe to re-run.
 
+-- Safety guard: these changes only make sense on a database where LASCORE (20261001_lascore_phase1.sql) is
+-- installed. If it is not, stop before touching any table that might belong to another app. Nothing is changed.
+do $$
+begin
+  if not exists (
+    select 1 from pg_type ty join pg_namespace n on n.oid = ty.typnamespace
+    where n.nspname = 'public' and ty.typname = 'lascore_role'
+  ) or to_regclass('public.orders') is null then
+    raise exception 'LASCORE is not installed in this database: run 20261001_lascore_phase1.sql first. Nothing was changed.';
+  end if;
+end $$;
+
 -- 1) Fast lookups for the paid / needs-review lists and the dashboard.
 create index if not exists orders_payment_status_paid_at_idx on public.orders (payment_status, paid_at desc);
 

@@ -80,7 +80,13 @@ nothing; duplicate order numbers roll back.
 2. Your real production schema: it may differ from the migration files (columns or policies added by hand). Run
    `verify-production-schema.sql` (read-only) in the Supabase SQL editor and compare.
 3. Applying the payments migration to the production project (it alters the shared `orders` table).
-4. LAS Portal: how it displays the new statuses (`pending`, `review`, …) and new columns, and that unpaid checkout
-   attempts will now appear as pending orders in the shared tables. The Portal's code is not in this repository.
+4. Sharing the Supabase project with LAS Portal. LAS Portal is a separate app (not the store, not LASCORE); it only
+   shares the project. Its code is not in this repository, so nothing here can prove the two never touch. What is done
+   to limit the risk: the migrations refuse to run (and change nothing) if `profiles`, `products`, `customers`,
+   `orders`, `order_items` or `audit_logs` already exist without LASCORE's `lascore_role` type; LASCORE's shared
+   functions/triggers carry a `lascore_` prefix; payment/order migrations refuse to run unless LASCORE is installed.
+   Still project-wide and not testable here: Auth settings (sign-ups, Site URL, redirect URLs), and LASCORE's trigger
+   on `auth.users`, which adds an inactive `profiles` row for every new auth user, Portal users included. Run section 0
+   of `verify-production-schema.sql` first and send the result before any migration is applied.
 5. Hosted limits and operations: project pausing after inactivity on the Free plan, backups (the Free plan has none),
    connection limits, latency, and the real production data volume.
