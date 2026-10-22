@@ -94,8 +94,10 @@ Orders record `alinmapay-sandbox` or `alinmapay` in `orders.payment_gateway`.
 
 ### Database (real project, at go-live only)
 
-Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
-in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
+Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`,
+then `supabase/migrations/20261012_lascore_orders.sql` in the SQL editor (the last one replaces the staff order-update
+rule so staff can change only fulfilment fields, and adds the automatic audit trail — run
+`supabase/local-test/verify-production-schema.sql` first and compare). Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
 `payment_response_code` says why — `MISMATCH` (order/amount/terminal/transaction did not match),
 `BAD_SIGNATURE` (no valid signature evidence — see below; a payment is never accepted without one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one),
 or a **gateway code such as `619`, `622`, `225`, `248`** (the gateway rejected *our inquiry request* or the terminal setup, so
@@ -164,3 +166,11 @@ not found on this endpoint, `225`/`609` wrong terminal password, `904` signature
 - A Cloudflare rate-limiting rule covers `/api/payments/*`.
 - One small real payment is made and checked in Supabase (`paid`, gateway `alinmapay`).
 - Deploy with `npm run deploy` only on Cloudflare Pages (Netlify cannot run these functions).
+
+### LASCORE orders (admin area)
+
+LASCORE lists only what was actually bought: **paid** orders, plus a separate **needs review** tab for the rare orders
+where money may have been taken but something did not match. Pending, failed and cancelled checkout attempts are never
+listed and never counted. Staff can update shipping status and tracking only; marking a review order as paid and
+recording refunds is admin-only (refunds themselves are made in AlinmaPay's portal). The database writes an audit
+record for every payment, order and shipping status change. Preview with the local kit: `supabase/local-test/README.md`.

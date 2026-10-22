@@ -43,3 +43,11 @@ where n.nspname = 'public' and proname = 'store_create_order';
 
 -- 8) Row counts only (no data is shown)
 select (select count(*) from public.orders) as orders, (select count(*) from public.customers) as customers;
+
+-- 9) The staff order-update rule as it is today (20261012_lascore_orders.sql replaces this function; compare first)
+select pg_get_functiondef(p.oid) as current_definition
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public' and p.proname = 'lascore_restrict_user_order_updates';
+
+-- 10) Triggers already present on orders (the audit trigger will be added next to them)
+select tgname from pg_trigger where tgrelid = 'public.orders'::regclass and not tgisinternal;

@@ -7,7 +7,7 @@ It starts three containers, reachable only from your PC (127.0.0.1):
 
 | Container | What it is |
 |---|---|
-| `db` | PostgreSQL 17. On first start it runs `00-supabase-compat.sql` (Supabase's roles/auth stubs) and then **the repo's real migrations** (`20261001_lascore_phase1.sql`, `20261011_alinmapay_payments.sql`). |
+| `db` | PostgreSQL 17. On first start it runs `00-supabase-compat.sql` (Supabase's roles/auth stubs) and then **the repo's real migrations** (`20261001_lascore_phase1.sql`, `20261011_alinmapay_payments.sql`, `20261012_lascore_orders.sql`). |
 | `postgrest` | The real PostgREST, the same REST layer Supabase uses in front of Postgres. |
 | `gateway` | nginx mapping `/rest/v1/*` to PostgREST, so the store talks to `http://127.0.0.1:54321` exactly as it talks to Supabase. |
 
@@ -43,6 +43,23 @@ Then `npm run check:payments` and `npm run preview`. Inspect the data with any S
 ```powershell
 docker compose exec db psql -U postgres -c "select order_number,payment_status,payment_gateway from orders order by created_at desc limit 10;"
 ```
+
+## Preview the LASCORE admin screens (Orders, Dashboard, Payments, Shipping)
+
+The kit has no login service, so a helper signs your browser in as a demo user. Demo accounts and sample orders
+(paid live and test orders, a duplicate-payment "needs review", plus pending, failed, cancelled and refunded ones that
+must NOT appear) come from `seed-demo.sql`:
+
+```powershell
+cd supabase\local-test
+Get-Content seed-demo.sql | docker compose exec -T db psql -U postgres
+cd ..\..
+node supabase\local-test\lascore-local-session.mjs admin     # or: staff
+```
+
+The helper prints two things to copy: the `$env:...` lines plus `npm run dev` to start the site against this database,
+and a one-line snippet to paste into the browser console (F12) at `http://localhost:3000/lascore`.
+Nothing here touches your real Supabase project.
 
 ## Safety net in the code
 
