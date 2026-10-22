@@ -174,3 +174,4 @@ where money may have been taken but something did not match. Pending, failed and
 listed and never counted. Staff can update shipping status and tracking only; marking a review order as paid and
 recording refunds is admin-only (refunds themselves are made in AlinmaPay's portal). The database writes an audit
 record for every payment, order and shipping status change. Preview with the local kit: `supabase/local-test/README.md`.
+Offline checks for the screens' logic (review reasons, Saudi-time "today", WhatsApp links, CSV safety): `npm run test:lascore`.

@@ -6,7 +6,6 @@ import { useLascoreAuth } from "@/lib/lascore/auth-context";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   PAYMENT_LABELS,
-  REVIEW_REASONS,
   SHIPPING_STEPS,
   amountOf,
   customerOf,
@@ -14,6 +13,7 @@ import {
   formatDateTime,
   formatSar,
   isTestGateway,
+  reviewReason,
   saveShipping,
   setPaymentStatus,
   shippingLabel,
@@ -175,7 +175,7 @@ function OrderCard({
 
   const dirty = shipping !== order.shipping_status || tracking.trim() !== (order.tracking_number ?? "");
   const whatsapp = customer ? whatsappLink(customer.phone) : null;
-  const reason = REVIEW_REASONS[order.payment_response_code];
+  const reason = reviewReason(order.payment_response_code);
   const isReview = order.payment_status === "review";
   const isPaid = order.payment_status === "paid";
 

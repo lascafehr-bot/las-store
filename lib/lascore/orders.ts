@@ -68,6 +68,19 @@ export const REVIEW_REASONS: Record<string, string> = {
   BAD_SIGNATURE: "تعذّر التحقق من توقيع البنك على نتيجة الدفع.",
 };
 
+/**
+ * Explains why an order is in review. Besides our own reasons, the payment server also sends orders to review with the
+ * gateway's three-digit code (e.g. 619, 622, 225) when AlinmaPay rejected the verification request or the terminal
+ * setup: the payment's real result is then unknown and the customer may have been charged.
+ */
+export function reviewReason(code: string): string | null {
+  if (REVIEW_REASONS[code]) return REVIEW_REASONS[code];
+  if (/^\d{3}$/.test(code)) {
+    return `رفضت بوابة الدفع طلب التحقق (الرمز ${code}). نتيجة الدفع الفعلية غير معروفة، وقد يكون المبلغ قد خُصم — تحقق منها في لوحة AlinmaPay.`;
+  }
+  return null;
+}
+
 export function shippingLabel(status: string): string {
   return SHIPPING_STEPS.find((s) => s.id === status)?.label ?? status;
 }
