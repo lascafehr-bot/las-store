@@ -10,8 +10,9 @@ import { build } from "esbuild";
 
 const root = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const outdir = mkdtempSync(join(tmpdir(), "las-lascore-test-"));
-await build({ entryPoints: { orders: join(root, "lib/lascore/orders.ts") }, bundle: true, platform: "node", format: "esm", outdir, logLevel: "error" });
+await build({ entryPoints: { orders: join(root, "lib/lascore/orders.ts"), insights: join(root, "lib/lascore/insights.ts") }, bundle: true, platform: "node", format: "esm", outdir, logLevel: "error" });
 const m = await import(pathToFileURL(join(outdir, "orders.js")).href);
+const ins = await import(pathToFileURL(join(outdir, "insights.js")).href);
 
 test("review reasons: ours, gateway codes, and unknown", () => {
   assert.match(m.reviewReason("DUPLICATE_PAYMENT"), /مرتين/);
@@ -77,4 +78,49 @@ test("payments CSV: Excel BOM, 2-decimals, quoting, and spreadsheet-formula neut
   assert.ok(lines[2].includes("'@cmd") && lines[2].includes("'-1"), "@ and - prefixed");
   assert.ok(lines[2].includes('"Say ""hi"""'), "quotes doubled");
   assert.ok(!lines[1].includes(",=HYPERLINK"), "no raw formula cell");
+});
+
+const order = (o) => ({ payment_status: "paid", total_amount: 10, created_at: o.paid_at, order_items: [], customers: null, ...o });
+const cust = (phone, name = "A", city = "جدة") => ({ full_name: name, email: "", phone, city, address: "" });
+
+test("customers: same person across phone formats is grouped; unpaid and refunded are ignored", () => {
+  const rows = ins.groupCustomers([
+    order({ paid_at: "2026-10-01T10:00:00Z", total_amount: 40, customers: cust("0501112233", "Old") }),
+    order({ paid_at: "2026-10-05T10:00:00Z", total_amount: 60, customers: cust("+966 50 111 2233", "New") }),
+    order({ paid_at: "2026-10-06T10:00:00Z", payment_status: "refunded", total_amount: 99, customers: cust("0501112233") }),
+    order({ paid_at: "2026-10-06T10:00:00Z", payment_status: "review", total_amount: 99, customers: cust("0509998877", "B") }),
+    order({ paid_at: "2026-10-07T10:00:00Z", total_amount: 5, customers: cust("0509998877", "B") }),
+  ]);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].orders, 2);
+  assert.equal(rows[0].total, 100);
+  assert.equal(rows[0].name, "New"); // newest details win
+  assert.equal(rows[1].total, 5);
+});
+
+test("sales by day: Saudi days, zero-filled, paid only", () => {
+  const now = new Date("2026-10-22T10:00:00Z");
+  const days = ins.salesByDay(
+    [
+      order({ paid_at: "2026-10-21T21:30:00Z", total_amount: 30 }), // 00:30 on the 22nd in Riyadh
+      order({ paid_at: "2026-10-20T09:00:00Z", total_amount: 20 }),
+      order({ paid_at: "2026-10-20T09:00:00Z", payment_status: "refunded", total_amount: 500 }),
+    ],
+    3,
+    now,
+  );
+  assert.deepEqual(days.map((d) => d.day), ["2026-10-20", "2026-10-21", "2026-10-22"]);
+  assert.deepEqual(days.map((d) => d.revenue), [20, 0, 30]);
+});
+
+test("top products and CSV safety", () => {
+  const items = (n, q, s) => [{ product_name: n, quantity: q, unit_price: s / q, subtotal: s }];
+  const top = ins.topProducts([
+    order({ paid_at: "2026-10-01T00:00:00Z", order_items: [...items("قهوة", 2, 74), ...items("كوب", 1, 50)] }),
+    order({ paid_at: "2026-10-02T00:00:00Z", order_items: items("قهوة", 1, 37) }),
+    order({ paid_at: "2026-10-02T00:00:00Z", payment_status: "failed", order_items: items("قهوة", 9, 999) }),
+  ]);
+  assert.deepEqual(top.map((p) => [p.name, p.quantity, p.revenue]), [["قهوة", 3, 111], ["كوب", 1, 50]]);
+  const csv = ins.customersCsv([{ key: "k", name: "=cmd()", phone: "1", email: "", city: "x", orders: 1, total: 1, firstAt: "a", lastAt: "b" }]);
+  assert.match(csv, /'=cmd\(\)/);
 });

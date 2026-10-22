@@ -190,7 +190,7 @@ export function setPaymentStatus(supabase: SupabaseClient, id: string, status: "
   );
 }
 
-function csvCell(value: string | number): string {
+export function csvCell(value: string | number): string {
   const text = String(value);
   // Neutralise spreadsheet formulas ("=", "+", "-", "@") in customer-supplied text.
   const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
