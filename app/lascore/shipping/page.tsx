@@ -1,5 +1,5 @@
-import { ComingSoon } from "@/app/lascore/ComingSoon";
+import { OrdersView } from "@/app/lascore/orders/OrdersView";
 
-export default function LascoreShippingPage() {
-  return <ComingSoon title="الشحن" />;
+export default function ShippingPage() {
+  return <OrdersView mode="shipping" />;
 }

@@ -20,7 +20,7 @@ export type Order = {
   notes?: string;
   total: number;
   createdAt: string;
-  status: "confirmed";
+  status: "pending" | "confirmed";
 };
 
 export const LAST_ORDER_KEY = "las-store-last-order";
