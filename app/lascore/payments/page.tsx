@@ -1,5 +1,5 @@
-import { ComingSoon } from "@/app/lascore/ComingSoon";
+import { PaymentsView } from "@/app/lascore/payments/PaymentsView";
 
-export default function LascorePaymentsPage() {
-  return <ComingSoon title="المدفوعات" />;
+export default function PaymentsPage() {
+  return <PaymentsView />;
 }
