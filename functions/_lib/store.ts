@@ -3,6 +3,7 @@ import { getBeanWeights, getProductBySlug, isBeanProduct } from "../../lib/produ
 import type { Env } from "./env";
 import { formatAmount, gatewayLabel, INQUIRY_REQUEST_ERROR_CODES, inquirePayment } from "./alinmapay";
 import { notifyOrderSettled, type EmailOrder } from "./email";
+import type { ShippingOrder } from "./aramex";
 
 export type ClientItem = { slug: string; color?: string; weight?: string; quantity: number };
 export type PricedItem = { name: string; unit_price: number; quantity: number; slug: string; options: string };
@@ -194,6 +195,47 @@ export async function getOrderForEmail(env: Env, orderNumber: string): Promise<E
     "customers(full_name,email,phone,city,address),order_items(product_name,quantity,unit_price,subtotal)";
   const rows = await rest<EmailOrder[]>(env, `orders?order_number=eq.${orderNumber}&select=${select}&limit=1`);
   return rows?.[0] ?? null;
+}
+
+/** The order with what Aramex needs (customer, items, payment and shipping state). */
+export async function getOrderForShipping(env: Env, orderNumber: string): Promise<ShippingOrder | null> {
+  if (!/^LAS[0-9]{8}[0-9A-F]{10}$/.test(orderNumber)) return null;
+  const select =
+    "order_number,payment_status,payment_gateway,shipping_status,tracking_number," +
+    "customers(full_name,email,phone,city,address),order_items(product_name,quantity)";
+  const rows = await rest<ShippingOrder[]>(env, `orders?order_number=eq.${orderNumber}&select=${select}&limit=1`);
+  return rows?.[0] ?? null;
+}
+
+/**
+ * Claims the right to create the shipment for a PAID order that has no tracking number yet, by writing a unique marker
+ * into tracking_number. Only one caller can win, so two clicks (or two admins) can never create two shipments.
+ */
+export async function claimShipment(env: Env, orderNumber: string, marker: string): Promise<boolean> {
+  const rows = await rest<unknown[]>(
+    env,
+    `orders?order_number=eq.${orderNumber}&payment_status=eq.paid&tracking_number=eq.&select=order_number`,
+    { method: "PATCH", prefer: "return=representation", body: JSON.stringify({ tracking_number: marker }) },
+  );
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/** Replaces the claim marker with the real tracking number and marks the order as packed. */
+export async function finishShipment(env: Env, orderNumber: string, marker: string, awb: string): Promise<boolean> {
+  const rows = await rest<unknown[]>(
+    env,
+    `orders?order_number=eq.${orderNumber}&tracking_number=eq.${encodeURIComponent(marker)}&select=order_number`,
+    { method: "PATCH", prefer: "return=representation", body: JSON.stringify({ tracking_number: awb, shipping_status: "packed" }) },
+  );
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/** Gives the claim back after Aramex refused (or could not be reached), so the admin can fix the data and try again. */
+export async function releaseShipment(env: Env, orderNumber: string, marker: string): Promise<void> {
+  await rest(env, `orders?order_number=eq.${orderNumber}&tracking_number=eq.${encodeURIComponent(marker)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ tracking_number: "" }),
+  });
 }
 
 /**

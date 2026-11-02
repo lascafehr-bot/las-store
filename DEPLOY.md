@@ -152,6 +152,29 @@ If creating the payment fails, the terminal prints the gateway's code. Common on
 not found on this endpoint, `225`/`609` wrong terminal password, `904` signature/merchant-key problem,
 `221`/`608`/`615` address check (AVS) fields required, `248` server IP not allowed, `304`/`305` currency not enabled.
 
+### Shipping (Aramex)
+
+An active staff member creates the Aramex shipment for a **paid** order: `POST /api/shipping/create` with `{ orderNumber }`
+(optionally `weightKg` and `city` to correct what Aramex rejected) and the staff member's Supabase access token in
+`Authorization: Bearer …`. It saves the tracking number in `orders.tracking_number`, moves `shipping_status` to `packed` and returns the
+label link. `POST /api/shipping/label` gives a fresh label link for an existing shipment. Nothing is created automatically.
+
+Safety rules (all covered by `npm run test:aramex`): staff only; paid orders only; **one shipment per order** (the order is claimed in
+the database first, so two clicks create one shipment); if Aramex refuses, the claim is given back and Aramex's message is shown;
+a **test (sandbox) payment can never create a real shipment** when `ARAMEX_ENV=production`; `ARAMEX_ENV=production` is refused on a
+local address; secrets, customer phone and address are never logged.
+
+Settings (all **Secret** on Cloudflare, see the `.dev.vars.example` list): `ARAMEX_ENV` (`uat` = Aramex's test system, which needs the
+caller's IP whitelisted by Aramex, or `production`, which needs no whitelisting), `ARAMEX_USERNAME`, `ARAMEX_PASSWORD`,
+`ARAMEX_ACCOUNT_PIN`, `ARAMEX_ACCOUNT_NUMBER`, `ARAMEX_ENTITY`, `ARAMEX_SHIPPER_NAME/PHONE/EMAIL/CITY/ADDRESS` (where the parcels are collected).
+Two values still to be confirmed by Aramex and changeable without code: `ARAMEX_PRODUCT_TYPE` (default `ONP`; their documents also show
+`CDS` and `OND`) and `ARAMEX_LABEL_REPORT_ID` (default `9729`; also `9201`).
+
+Database: run `supabase/migrations/20261102_service_role_grants.sql` once (gives the server key the table permissions it needs, including
+`profiles` for the staff check). The weight is read from the item names ("250غم", "1كغم") plus packaging (`ARAMEX_PACKAGING_KG`, default 0.15).
+Only the cities Aramex's own samples spell out (Riyadh, Jeddah, Dammam, Makkah) are translated from Arabic; any other city is sent as typed
+and Aramex's answer tells the admin to correct it.
+
 ### Going live checklist
 
 - Sandbox runbook above passes (`verified=true` on the receipt check) and `npm run test:payments` is green.

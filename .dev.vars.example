@@ -16,3 +16,17 @@ ALINMAPAY_MERCHANT_IP=
 RESEND_API_KEY=
 EMAIL_FROM=LAS CAFE <orders@lascafe.sa>
 ORDER_ALERT_EMAIL=
+# Aramex shipping (optional). ARAMEX_ENV has no default: uat = Aramex test system, production = real billed shipments.
+# On Cloudflare add every one of these as type Secret.
+ARAMEX_ENV=uat
+ARAMEX_USERNAME=
+ARAMEX_PASSWORD=
+ARAMEX_ACCOUNT_PIN=
+ARAMEX_ACCOUNT_NUMBER=
+ARAMEX_ENTITY=
+ARAMEX_SHIPPER_NAME=LAS CAFE
+ARAMEX_SHIPPER_PHONE=
+ARAMEX_SHIPPER_EMAIL=
+ARAMEX_SHIPPER_CITY=Riyadh
+ARAMEX_SHIPPER_ADDRESS=
+# Optional, to be confirmed by Aramex: ARAMEX_PRODUCT_TYPE=ONP (or CDS / OND)  ARAMEX_LABEL_REPORT_ID=9729 (or 9201)

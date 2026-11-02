@@ -21,6 +21,27 @@ export interface Env {
   RESEND_API_KEY?: string; // secret
   EMAIL_FROM?: string; // e.g. "LAS CAFE <orders@lascafe.sa>" (the domain must be verified in Resend)
   ORDER_ALERT_EMAIL?: string; // where the owner's "order paid / needs review" alert goes
+  // Aramex shipping (functions/_lib/aramex.ts). All optional: without them the shipping endpoints answer "not configured".
+  // On Cloudflare Pages with a wrangler.jsonc, add every one of these as type Secret (plain-text variables are ignored).
+  ARAMEX_ENV?: string; // explicit, no default: "uat" (Aramex test system) or "production"
+  ARAMEX_USERNAME?: string; // secret: the aramex.com login Aramex registered for the API
+  ARAMEX_PASSWORD?: string; // secret
+  ARAMEX_ACCOUNT_PIN?: string; // secret
+  ARAMEX_ACCOUNT_NUMBER?: string;
+  ARAMEX_ENTITY?: string; // e.g. RUH
+  ARAMEX_COUNTRY?: string; // default SA
+  ARAMEX_SHIPPER_NAME?: string; // who the parcel is sent by, e.g. LAS CAFE
+  ARAMEX_SHIPPER_PHONE?: string;
+  ARAMEX_SHIPPER_EMAIL?: string; // also used as the consignee email when the customer gave none (Aramex requires one)
+  ARAMEX_SHIPPER_CITY?: string; // Aramex city name, e.g. Riyadh
+  ARAMEX_SHIPPER_ADDRESS?: string; // pickup address
+  ARAMEX_PRODUCT_GROUP?: string; // default DOM
+  ARAMEX_PRODUCT_TYPE?: string; // default ONP (to be confirmed by Aramex: ONP / CDS / OND appear in their documents)
+  ARAMEX_LABEL_REPORT_ID?: string; // default 9729 (Aramex's samples use 9729 and 9201)
+  ARAMEX_PACKAGING_KG?: string; // added to every parcel, default 0.15
+  ARAMEX_DEFAULT_ITEM_KG?: string; // for items whose weight is not in their name, default 0.5
+  ARAMEX_GOODS_DESCRIPTION?: string; // default Coffee
+  ARAMEX_BASE_URL?: string; // tests only: replaces the Aramex address
   // Sandbox payments normally use a LOCAL test database. Set to "true" only to deliberately write sandbox
   // orders into a hosted Supabase project (never the one shared with real customers).
   ALLOW_SANDBOX_ON_HOSTED_DB?: string;

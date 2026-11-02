@@ -10,7 +10,8 @@
     "preview": "next build && wrangler pages dev ./out",
     "deploy": "next build && wrangler pages deploy ./out --project-name=las-store --branch=main --commit-dirty=true",
     "check:payments": "node scripts/check-payment-env.mjs",
-    "test:payments": "node --test tests/payments.test.mjs"
+    "test:payments": "node --test tests/payments.test.mjs",
+    "test:aramex": "node --test tests/aramex.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
