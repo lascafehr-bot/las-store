@@ -4,11 +4,11 @@ import { useLocale } from "@/components/LocaleProvider";
 import { STORE_CONFIG } from "@/lib/config";
 
 const PHOTOS = [
-  "/media/lifestyle-1.jpg?v=3",
-  "/media/lifestyle-2.jpg?v=3",
-  "/media/lifestyle-3.jpg?v=3",
-  "/media/lifestyle-4.jpg?v=3",
-  "/media/lifestyle-5.jpg?v=3",
+  "/media/lifestyle-1.jpg?v=4",
+  "/media/lifestyle-2.jpg?v=4",
+  "/media/lifestyle-3.jpg?v=4",
+  "/media/lifestyle-4.jpg?v=4",
+  "/media/lifestyle-5.jpg?v=4",
 ];
 
 export function LifestyleStrip() {

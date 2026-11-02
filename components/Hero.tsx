@@ -2,7 +2,7 @@ export function Hero() {
   return (
     <section className="w-full bg-las-bg">
       <img
-        src="/media/hero-story.jpg?v=6"
+        src="/media/hero-story.jpg?v=7"
         alt="لاس كافيه"
         width={5333}
         height={1937}
