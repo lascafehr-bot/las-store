@@ -15,9 +15,11 @@ import {
 type ProductCardProps = {
   product: Product;
   variant?: "compact" | "default";
+  /** Load the picture straight away instead of waiting for the visitor to scroll to it (first row only). */
+  eager?: boolean;
 };
 
-export function ProductCard({ product, variant = "default" }: ProductCardProps) {
+export function ProductCard({ product, variant = "default", eager = false }: ProductCardProps) {
   const { locale } = useLocale();
   const name = getProductName(product, locale);
   const description = getProductDescription(product, locale);
@@ -40,6 +42,7 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
             src={product.image}
             alt={name}
             fill
+            loading={eager ? "eager" : undefined}
             className={
               product.slug === "las-granola"
                 ? "object-contain transition-transform duration-500 group-hover:scale-[1.02]"

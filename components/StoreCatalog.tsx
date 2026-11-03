@@ -25,7 +25,7 @@ export function StoreCatalog() {
       <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <CategoryPills />
         <div className="space-y-16 sm:space-y-20">
-          {CATEGORIES.map((cat) => {
+          {CATEGORIES.map((cat, sectionIndex) => {
             const products = productsForCategory(cat.id, locale);
             if (products.length === 0) return null;
 
@@ -46,8 +46,8 @@ export function StoreCatalog() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4 lg:gap-x-8">
-                  {preview.map((product) => (
-                    <ProductCard key={product.id} product={product} variant="compact" />
+                  {preview.map((product, i) => (
+                    <ProductCard key={product.id} product={product} variant="compact" eager={sectionIndex === 0 && i < 4} />
                   ))}
                 </div>
               </section>
@@ -72,8 +72,8 @@ export function StoreCatalog() {
             {getCategoryLabel(active, locale, "section")}
           </h2>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} variant="compact" />
+            {products.map((product, i) => (
+              <ProductCard key={product.id} product={product} variant="compact" eager={i < 4} />
             ))}
           </div>
         </>
