@@ -108,6 +108,42 @@ export function buildCustomerEmail(order: EmailOrder, to: string): Message {
   return { to, subject, html, text, replyTo: STORE_CONFIG.email };
 }
 
+/** "Your order has shipped" with the Aramex tracking number. */
+export function buildShippedEmail(order: { order_number: string; customers: { full_name: string } | null }, awb: string, to: string): Message {
+  const name = order.customers?.full_name ?? "";
+  const link = `https://www.aramex.com/track/results?ShipmentNumber=${encodeURIComponent(awb)}`;
+  const subject = `تم شحن طلبك — Your order has shipped ${order.order_number}`;
+  const html = wrap(
+    `<h2 style="margin:0 0 8px">تم شحن طلبك${name ? `، ${escapeHtml(name)}` : ""}</h2>` +
+      `<p style="margin:0 0 12px">Your order has been handed to Aramex${name ? `, ${escapeHtml(name)}` : ""}.</p>` +
+      `<p><b>رقم الطلب / Order number:</b> <span dir="ltr">${escapeHtml(order.order_number)}</span><br>` +
+      `<b>رقم التتبع (أرامكس) / Aramex tracking number:</b> <span dir="ltr">${escapeHtml(awb)}</span></p>` +
+      `<p><a href="${escapeHtml(link)}">تتبع شحنتك / Track your shipment</a></p>` +
+      `<p style="font-size:12px;color:#777">للاستفسار راسلنا على / Questions: ${escapeHtml(STORE_CONFIG.email)}<br>${escapeHtml(STORE_CONFIG.companyName)}</p>`,
+  );
+  const text =
+    `تم شحن طلبك / Your order has shipped\nرقم الطلب / Order: ${order.order_number}\nرقم التتبع (أرامكس) / Aramex tracking: ${awb}\n` +
+    `${link}\n${STORE_CONFIG.email}`;
+  return { to, subject, html, text, replyTo: STORE_CONFIG.email };
+}
+
+/** Tells the customer their parcel is on its way. Never throws; logs by kind only. */
+export async function notifyShipped(
+  env: Env,
+  order: { order_number: string; payment_gateway: string; customers: { full_name: string; email: string } | null },
+  awb: string,
+): Promise<void> {
+  const to = order.customers?.email;
+  // Test (sandbox) orders carry made-up customers: never email them.
+  if (order.payment_gateway !== "alinmapay" || !isEmailAddress(to) || !env.RESEND_API_KEY || !env.EMAIL_FROM) return;
+  try {
+    await sendEmail(env, buildShippedEmail(order, awb, to));
+    console.log(`shipped email sent order=${order.order_number}`);
+  } catch (err) {
+    console.error(`shipped email failed order=${order.order_number}: ${err instanceof Error ? err.message : "error"}`);
+  }
+}
+
 /** One call to Resend. Returns false when email is not configured. Throws (without the body) on API errors. */
 export async function sendEmail(env: Env, msg: Message): Promise<boolean> {
   if (!env.RESEND_API_KEY || !env.EMAIL_FROM) return false;

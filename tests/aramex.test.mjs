@@ -61,6 +61,8 @@ const logs = [];
 let aramexCalls = [];
 let aramexImpl;
 let failFinish = false;
+let emails = [];
+let resendStatus = 200;
 const okAramex = (awb = "44100000001") => () =>
   new Response(JSON.stringify({ HasErrors: false, Notifications: [], Shipments: [{ ID: awb, HasErrors: false, Notifications: [], ShipmentLabel: { LabelURL: "https://labels.example.test/" + awb + ".pdf" } }] }), { status: 200 });
 const realFetch = globalThis.fetch;
@@ -74,6 +76,10 @@ const fakeFetch = async (url, init = {}) => {
     aramexCalls.push({ operation, body: JSON.parse(init.body) });
     if (aramexImpl.delay) await new Promise((r) => setTimeout(r, aramexImpl.delay));
     return aramexImpl.run(operation);
+  }
+  if (url === "https://api.resend.com/emails") {
+    emails.push(JSON.parse(init.body));
+    return new Response("{}", { status: resendStatus });
   }
   const u = new URL(url);
   if (u.hostname !== "db.example.test") throw new Error("unexpected host " + u.hostname);
@@ -117,6 +123,8 @@ beforeEach(() => {
   aramexCalls = [];
   aramexImpl = { run: okAramex() };
   failFinish = false;
+  emails = [];
+  resendStatus = 200;
 });
 
 let counter = 0;
@@ -434,6 +442,64 @@ describe("POST /api/shipping/create", () => {
 });
 
 // ---- the label endpoint ------------------------------------------------------------------------------------
+describe("the shipped email", () => {
+  const mailEnv = { ...env, RESEND_API_KEY: rnd("re_"), EMAIL_FROM: "LAS <orders@example.test>" };
+  const withMail = async (fn) => {
+    call.env = mailEnv;
+    try {
+      await fn();
+    } finally {
+      call.env = undefined;
+    }
+  };
+  test("a paid live order: the customer gets one email with the tracking number, replies go to the shop", () =>
+    withMail(async () => {
+      const o = mkOrder();
+      const res = await create({ orderNumber: o.order_number });
+      assert.equal(res.status, 200);
+      assert.equal(emails.length, 1);
+      assert.deepEqual(emails[0].to, ["customer@example.test"]);
+      assert.match(emails[0].html, /44100000001/);
+      assert.match(emails[0].text, /44100000001/);
+      assert.match(emails[0].subject, new RegExp(o.order_number));
+      assert.ok(emails[0].reply_to);
+    }));
+  test("a test (sandbox) order is never emailed", () =>
+    withMail(async () => {
+      const o = mkOrder({ payment_gateway: "alinmapay-sandbox" });
+      assert.equal((await create({ orderNumber: o.order_number })).status, 200);
+      assert.equal(emails.length, 0);
+    }));
+  test("no email when the customer gave none or a bad one", () =>
+    withMail(async () => {
+      for (const email of ["", "not-an-email", "a b@c.d"]) {
+        const o = mkOrder({ customers: { ...mkOrder().customers, email } });
+        assert.equal((await create({ orderNumber: o.order_number })).status, 200);
+      }
+      assert.equal(emails.length, 0);
+    }));
+  test("email not configured: shipment still works, nothing sent", async () => {
+    const o = mkOrder();
+    assert.equal((await create({ orderNumber: o.order_number })).status, 200);
+    assert.equal(emails.length, 0);
+  });
+  test("the email service failing never undoes the shipment", () =>
+    withMail(async () => {
+      resendStatus = 500;
+      const o = mkOrder();
+      const res = await create({ orderNumber: o.order_number });
+      assert.equal(res.status, 200);
+      assert.equal((await res.json()).awb, "44100000001");
+      assert.equal(row(o).tracking_number, "44100000001");
+    }));
+  test("customer-supplied text is escaped in the email", () =>
+    withMail(async () => {
+      const o = mkOrder({ customers: { ...mkOrder().customers, full_name: "<script>alert(1)</script>" } });
+      await create({ orderNumber: o.order_number });
+      assert.ok(!emails[0].html.includes("<script>"));
+    }));
+});
+
 describe("POST /api/shipping/label", () => {
   const label = (body, opts) => call(labelEp, body, opts);
   test("returns a fresh label link for a shipped order", async () => {

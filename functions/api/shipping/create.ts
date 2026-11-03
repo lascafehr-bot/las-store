@@ -2,6 +2,7 @@
 // Body: { orderNumber, weightKg?, city? }  (weightKg and city let the admin correct what Aramex rejected).
 // Safety: staff only, paid orders only, one shipment per order (claimed in the database), live Aramex only for live payments.
 import { AramexError, createShipment, requireAramexEnv } from "../../_lib/aramex";
+import { notifyShipped } from "../../_lib/email";
 import type { Env, PagesFunction } from "../../_lib/env";
 import { requireStaff } from "../../_lib/staff";
 import { HttpError, claimShipment, finishShipment, getOrderForShipping, releaseShipment } from "../../_lib/store";
@@ -9,7 +10,7 @@ import { HttpError, claimShipment, finishShipment, getOrderForShipping, releaseS
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   let marker = "";
   let orderNumber = "";
   try {
@@ -62,6 +63,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       return json({ error: "created_but_not_saved", awb: created.awb, labelUrl: created.labelUrl }, 500);
     }
     marker = "";
+    // Best effort: an email problem never changes the result of creating the shipment.
+    const mail = notifyShipped(env, order, created.awb);
+    if (waitUntil) waitUntil(mail);
+    else await mail;
     return json({ orderNumber, awb: created.awb, labelUrl: created.labelUrl, weightKg: created.weightKg });
   } catch (err) {
     if (marker) {
