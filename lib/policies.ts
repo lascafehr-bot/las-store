@@ -21,15 +21,11 @@ export const POLICY_CONTENT: Record<
   shipping: {
     ar: [
       "مدة التوصيل: 2-4 أيام عمل داخل المدن الرئيسية، 3-7 أيام خارجها",
-      "خيار الاستلام من الفروع الثلاثة (Click & Collect) دون رسوم",
-      "تكلفة الشحن تُحتسب تلقائيًا حسب الوجهة والوزن",
-      "شحن مجاني عند تجاوز حد أدنى للطلب [يُحدَّد لاحقًا]",
+      "التوصيل مجاني لجميع الطلبات داخل المملكة",
     ],
     en: [
       "Delivery time: 2–4 business days in major cities, 3–7 days elsewhere.",
-      "Click & Collect from the three branches at no charge.",
-      "Shipping cost is calculated automatically by destination and weight.",
-      "Free shipping above a minimum order [to be determined later].",
+      "Delivery is free on all orders within Saudi Arabia.",
     ],
   },
   privacy: {
