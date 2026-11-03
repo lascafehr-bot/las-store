@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
+import { STORE_CONFIG } from "@/lib/config";
 import { formatPrice } from "@/lib/i18n";
 import { cartItemOptions } from "@/lib/cart";
 import { buildFollowUpWhatsAppUrl, readLastOrder, type Order } from "@/lib/orders";
@@ -209,6 +210,12 @@ export function OrderConfirmation() {
         >
           {t("whatsappFollowUpBtn")}
         </a>
+        <p className="mt-4 text-sm text-las-muted">
+          {t("emailFollowUp")}{" "}
+          <a href={`mailto:${STORE_CONFIG.email}`} className="font-medium text-las-accent hover:text-las-accent-hover" dir="ltr" lang="en">
+            {STORE_CONFIG.email}
+          </a>
+        </p>
       </div>
 
       <div className="mt-6 text-center">

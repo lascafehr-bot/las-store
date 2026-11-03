@@ -87,6 +87,7 @@ const messages = {
     whatsappFollowUp: "متابعة عبر واتساب",
     whatsappFollowUpDesc: "واتساب للمتابعة فقط — لتأكيد محتوى الطلب، مدة التوصيل، وأي ملاحظات.",
     whatsappFollowUpBtn: "متابعة الطلب عبر واتساب",
+    emailFollowUp: "أو راسلنا على البريد:",
     continueShopping: "متابعة التسوّق",
     orderNotFound: "لم يتم العثور على الطلب.",
     backToStore: "العودة للمتجر",
@@ -187,6 +188,7 @@ const messages = {
     whatsappFollowUpDesc:
       "WhatsApp for follow-up only — to confirm order contents, delivery time, and any notes.",
     whatsappFollowUpBtn: "Follow up on WhatsApp",
+    emailFollowUp: "Or email us at:",
     continueShopping: "Continue shopping",
     orderNotFound: "Order not found.",
     backToStore: "Back to store",
