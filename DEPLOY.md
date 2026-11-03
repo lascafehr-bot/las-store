@@ -174,6 +174,17 @@ caller's IP whitelisted by Aramex, or `production`, which needs no whitelisting)
 Two values still to be confirmed by Aramex and changeable without code: `ARAMEX_PRODUCT_TYPE` (default `ONP`; their documents also show
 `CDS` and `OND`) and `ARAMEX_LABEL_REPORT_ID` (default `9729`; also `9201`).
 
+**Buttons:** in LASCORE, Orders, an open paid order has **Create Aramex shipment** (asks to confirm first) while it has no tracking number,
+and **Print Aramex label** once it has an Aramex one (plain digits; a hand-typed number from another carrier gets no Aramex button).
+When the shipment is created the customer is emailed the tracking number (live-payment orders only, valid email only; an email problem
+never undoes the shipment).
+
+**Testing before going live.** Aramex's test system (`uat`) accepts only whitelisted IPs, and Cloudflare has no fixed IP, so the first test
+runs from a computer whose public IPv4 Aramex whitelisted (`curl -4 https://api.ipify.org` shows it). After that test Aramex sends the real
+API username and password; put them in Cloudflare with the account PIN, set `ARAMEX_ENV=production` and redeploy. The store's account is
+**B2C** (75829154, entity RUH); the B2B account (75829159) is for wholesale and must not be used here. For the first live shipment tell Aramex
+it is a test and ask them to cancel it without charge.
+
 Database: run `supabase/migrations/20261102_service_role_grants.sql` once (gives the server key the table permissions it needs, including
 `profiles` for the staff check). The weight is read from the item names ("250غم", "1كغم") plus packaging (`ARAMEX_PACKAGING_KG`, default 0.15).
 Only the cities Aramex's own samples spell out (Riyadh, Jeddah, Dammam, Makkah) are translated from Arabic; any other city is sent as typed
@@ -190,6 +201,15 @@ and Aramex's answer tells the admin to correct it.
 - AlinmaPay has confirmed whether the receipt URL domain must be registered, and it is registered if required.
 - A Cloudflare rate-limiting rule covers `/api/payments/*`.
 - One small real payment is made and checked in Supabase (`paid`, gateway `alinmapay`).
+- Checkout accepts only a valid Saudi mobile number (`lib/phone.ts`, checked in the form and again on the server) so the courier can call the customer.
+- Keep the free Supabase project awake: an UptimeRobot **Keyword** monitor on `https://shop.lascafe.sa/api/health` (keyword `ok`, alert when it does
+  not exist, every 5 minutes). `/api/health` asks the database one harmless question and answers 200 `{"status":"ok"}` or 503. Upgrading to
+  Supabase Pro is the lasting fix.
+- Admin screens: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the **publishable** key) must be in the git-ignored `.env.local`
+  **when `npm run deploy` builds** (they are baked into the static files; Cloudflare's settings do not provide them). Run
+  `20261012_lascore_orders.sql` in Supabase. Staff need a Supabase user with an active profile.
+- Email from `orders@lascafe.sa`: the three Resend DNS records (TXT `resend._domainkey`, CNAME `rsend`, CNAME `send`) must be added where the domain's
+  DNS lives (t2.sa), then **Verify** in Resend, then change `EMAIL_FROM` and redeploy. Until then Resend only delivers to the Resend account's own email.
 - Deploy with `npm run deploy` only on Cloudflare Pages (Netlify cannot run these functions).
 
 ### LASCORE orders (admin area)
