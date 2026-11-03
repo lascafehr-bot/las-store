@@ -1,5 +1,30 @@
--- Las Café store (lascore) — dedicated project schema, Phase 1
--- Run this in the NEW Las Café Supabase project's SQL editor.
+-- Las Café store (lascore) — schema, Phase 1
+-- Run this in the Supabase project's SQL editor.
+--
+-- SAFE FOR A PROJECT SHARED WITH ANOTHER APP (e.g. LAS Portal): if a table with one of these generic names already
+-- exists and was not created by LASCORE, this script stops at the very first statement with a clear message and
+-- changes NOTHING (a multi-statement script runs as one transaction). It never replaces or drops a function or
+-- trigger it did not create: LASCORE's own objects are all prefixed "lascore_".
+
+do $$
+declare
+  t text;
+begin
+  -- LASCORE's own enum exists: this is a re-run on a project where LASCORE is already installed.
+  if exists (
+    select 1 from pg_type ty join pg_namespace n on n.oid = ty.typnamespace
+    where n.nspname = 'public' and ty.typname = 'lascore_role'
+  ) then
+    return;
+  end if;
+
+  foreach t in array array['profiles', 'products', 'customers', 'orders', 'order_items', 'audit_logs'] loop
+    if to_regclass('public.' || t) is not null then
+      raise exception
+        'Refusing to run: public.% already exists and was not created by LASCORE (this Supabase project is shared with another app). Nothing was changed. Run supabase/local-test/verify-production-schema.sql and review the result before continuing.', t;
+    end if;
+  end loop;
+end $$;
 
 create extension if not exists "pgcrypto";
 
@@ -92,7 +117,7 @@ create table if not exists public.audit_logs (
 create index if not exists audit_logs_created_at_idx on public.audit_logs (created_at desc);
 create index if not exists audit_logs_user_id_idx on public.audit_logs (user_id);
 
-create or replace function public.set_updated_at()
+create or replace function public.lascore_set_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -105,22 +130,22 @@ $$;
 drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at
 before update on public.profiles
-for each row execute function public.set_updated_at();
+for each row execute function public.lascore_set_updated_at();
 
 drop trigger if exists products_set_updated_at on public.products;
 create trigger products_set_updated_at
 before update on public.products
-for each row execute function public.set_updated_at();
+for each row execute function public.lascore_set_updated_at();
 
 drop trigger if exists customers_set_updated_at on public.customers;
 create trigger customers_set_updated_at
 before update on public.customers
-for each row execute function public.set_updated_at();
+for each row execute function public.lascore_set_updated_at();
 
 drop trigger if exists orders_set_updated_at on public.orders;
 create trigger orders_set_updated_at
 before update on public.orders
-for each row execute function public.set_updated_at();
+for each row execute function public.lascore_set_updated_at();
 
 create or replace function public.lascore_is_admin()
 returns boolean
@@ -187,8 +212,20 @@ begin
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
+-- Older installs used the generic trigger name "on_auth_user_created" (also the name in Supabase's own starter
+-- template, so another app may use it). Remove it ONLY if it is LASCORE's own, never someone else's.
+do $$
+begin
+  if exists (
+    select 1 from pg_trigger t join pg_proc p on p.oid = t.tgfoid
+    where t.tgrelid = 'auth.users'::regclass and t.tgname = 'on_auth_user_created' and p.proname = 'lascore_handle_new_user'
+  ) then
+    drop trigger on_auth_user_created on auth.users;
+  end if;
+end $$;
+
+drop trigger if exists lascore_on_auth_user_created on auth.users;
+create trigger lascore_on_auth_user_created
 after insert on auth.users
 for each row execute function public.lascore_handle_new_user();
 

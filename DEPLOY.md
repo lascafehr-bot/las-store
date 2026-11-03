@@ -87,15 +87,19 @@ a payment id) → customer pays on AlinmaPay's page → AlinmaPay posts the encr
 Run `npm run check:payments` to see which settings are present, by name only (no values are printed).
 
 **Keep sandbox and live apart.** Sandbox payments must never write into the real Supabase project (it is shared with
-LAS Portal). Test against the **local test database** in `supabase/local-test` (free, runs on your PC). With
+LAS Portal). Test against the **local test database** in `supabase/local-test` (free, runs on your PC). LAS Portal is a separate app that only shares this Supabase project; before any migration, run
+section 0 of `supabase/local-test/verify-production-schema.sql` (read-only) and review it. The migrations abort without
+changes if they find same-named tables they did not create. With
 `ALINMAPAY_ENV=sandbox` the server refuses a hosted `SUPABASE_URL` unless `ALLOW_SANDBOX_ON_HOSTED_DB=true` is set
 deliberately (only for a dedicated test project). In Cloudflare Pages keep sandbox values under **Preview** only.
 Orders record `alinmapay-sandbox` or `alinmapay` in `orders.payment_gateway`.
 
 ### Database (real project, at go-live only)
 
-Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`
-in the SQL editor. Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
+Run `supabase/migrations/20261001_lascore_phase1.sql`, then `supabase/migrations/20261011_alinmapay_payments.sql`,
+then `supabase/migrations/20261012_lascore_orders.sql` in the SQL editor (the last one replaces the staff order-update
+rule so staff can change only fulfilment fields, and adds the automatic audit trail — run
+`supabase/local-test/verify-production-schema.sql` first and compare). Order states: `pending`, `paid`, `failed`, `cancelled`, and `review` (needs a person):
 `payment_response_code` says why — `MISMATCH` (order/amount/terminal/transaction did not match),
 `BAD_SIGNATURE` (no valid signature evidence — see below; a payment is never accepted without one), `DUPLICATE_PAYMENT` (same cart paid twice: refund one),
 or a **gateway code such as `619`, `622`, `225`, `248`** (the gateway rejected *our inquiry request* or the terminal setup, so
@@ -187,3 +191,12 @@ and Aramex's answer tells the admin to correct it.
 - A Cloudflare rate-limiting rule covers `/api/payments/*`.
 - One small real payment is made and checked in Supabase (`paid`, gateway `alinmapay`).
 - Deploy with `npm run deploy` only on Cloudflare Pages (Netlify cannot run these functions).
+
+### LASCORE orders (admin area)
+
+LASCORE lists only what was actually bought: **paid** orders, plus a separate **needs review** tab for the rare orders
+where money may have been taken but something did not match. Pending, failed and cancelled checkout attempts are never
+listed and never counted. Staff can update shipping status and tracking only; marking a review order as paid and
+recording refunds is admin-only (refunds themselves are made in AlinmaPay's portal). The database writes an audit
+record for every payment, order and shipping status change. Preview with the local kit: `supabase/local-test/README.md`.
+Offline checks for the screens' logic (review reasons, Saudi-time "today", WhatsApp links, CSV safety): `npm run test:lascore`.

@@ -7,7 +7,7 @@ It starts three containers, reachable only from your PC (127.0.0.1):
 
 | Container | What it is |
 |---|---|
-| `db` | PostgreSQL 17. On first start it runs `00-supabase-compat.sql` (Supabase's roles/auth stubs) and then **the repo's real migrations** (`20261001_lascore_phase1.sql`, `20261011_alinmapay_payments.sql`). |
+| `db` | PostgreSQL 17. On first start it runs `00-supabase-compat.sql` (Supabase's roles/auth stubs) and then **the repo's real migrations** (`20261001_lascore_phase1.sql`, `20261011_alinmapay_payments.sql`, `20261012_lascore_orders.sql`). |
 | `postgrest` | The real PostgREST, the same REST layer Supabase uses in front of Postgres. |
 | `gateway` | nginx mapping `/rest/v1/*` to PostgREST, so the store talks to `http://127.0.0.1:54321` exactly as it talks to Supabase. |
 
@@ -44,6 +44,23 @@ Then `npm run check:payments` and `npm run preview`. Inspect the data with any S
 docker compose exec db psql -U postgres -c "select order_number,payment_status,payment_gateway from orders order by created_at desc limit 10;"
 ```
 
+## Preview the LASCORE admin screens (Orders, Dashboard, Payments, Shipping)
+
+The kit has no login service, so a helper signs your browser in as a demo user. Demo accounts and sample orders
+(paid live and test orders, a duplicate-payment "needs review", plus pending, failed, cancelled and refunded ones that
+must NOT appear) come from `seed-demo.sql`:
+
+```powershell
+cd supabase\local-test
+Get-Content seed-demo.sql | docker compose exec -T db psql -U postgres
+cd ..\..
+node supabase\local-test\lascore-local-session.mjs admin     # or: staff
+```
+
+The helper prints two things to copy: the `$env:...` lines plus `npm run dev` to start the site against this database,
+and a one-line snippet to paste into the browser console (F12) at `http://localhost:3000/lascore`.
+Nothing here touches your real Supabase project.
+
 ## Safety net in the code
 
 With `ALINMAPAY_ENV=sandbox` the server **refuses to start a payment** if `SUPABASE_URL` is a hosted database, unless
@@ -63,7 +80,13 @@ nothing; duplicate order numbers roll back.
 2. Your real production schema: it may differ from the migration files (columns or policies added by hand). Run
    `verify-production-schema.sql` (read-only) in the Supabase SQL editor and compare.
 3. Applying the payments migration to the production project (it alters the shared `orders` table).
-4. LAS Portal: how it displays the new statuses (`pending`, `review`, …) and new columns, and that unpaid checkout
-   attempts will now appear as pending orders in the shared tables. The Portal's code is not in this repository.
+4. Sharing the Supabase project with LAS Portal. LAS Portal is a separate app (not the store, not LASCORE); it only
+   shares the project. Its code is not in this repository, so nothing here can prove the two never touch. What is done
+   to limit the risk: the migrations refuse to run (and change nothing) if `profiles`, `products`, `customers`,
+   `orders`, `order_items` or `audit_logs` already exist without LASCORE's `lascore_role` type; LASCORE's shared
+   functions/triggers carry a `lascore_` prefix; payment/order migrations refuse to run unless LASCORE is installed.
+   Still project-wide and not testable here: Auth settings (sign-ups, Site URL, redirect URLs), and LASCORE's trigger
+   on `auth.users`, which adds an inactive `profiles` row for every new auth user, Portal users included. Run section 0
+   of `verify-production-schema.sql` first and send the result before any migration is applied.
 5. Hosted limits and operations: project pausing after inactivity on the Free plan, backups (the Free plan has none),
    connection limits, latency, and the real production data volume.
