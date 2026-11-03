@@ -1,6 +1,7 @@
 // POST /api/payments/create — validates the cart, saves a pending order, starts the AlinmaPay payment.
 import { initiatePayment, formatAmount } from "../../_lib/alinmapay";
 import { requireEnv, type Env, type PagesFunction } from "../../_lib/env";
+import { saudiMobile } from "../../../lib/phone";
 import {
   HttpError,
   checkoutFingerprint,
@@ -47,6 +48,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const address = clean(body.address, 150);
     if (!name || !phone || !city || !address) throw new HttpError(400, "invalid_details");
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, "invalid_details");
+    // The Aramex courier must be able to call the customer.
+    if (!saudiMobile(phone)) throw new HttpError(400, "invalid_phone");
 
     const { items, total } = priceItems(body.items);
 

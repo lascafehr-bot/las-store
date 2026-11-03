@@ -6,6 +6,7 @@ import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatPrice } from "@/lib/i18n";
 import { cartItemOptions } from "@/lib/cart";
+import { saudiMobile } from "@/lib/phone";
 import { saveLastOrder, type Order } from "@/lib/orders";
 
 export function CheckoutForm() {
@@ -39,6 +40,11 @@ export function CheckoutForm() {
       return;
     }
 
+    if (!saudiMobile(phone)) {
+      setError(t("errorPhone"));
+      return;
+    }
+
     if (!city.trim() || !address.trim()) {
       setError(t("errorDelivery"));
       return;
@@ -66,7 +72,7 @@ export function CheckoutForm() {
         return;
       }
       if (!res.ok || !data?.redirect?.url) {
-        setError(data?.error === "invalid_cart" ? t("errorCartInvalid") : t("errorPayment"));
+        setError(data?.error === "invalid_cart" ? t("errorCartInvalid") : data?.error === "invalid_phone" ? t("errorPhone") : t("errorPayment"));
         setSubmitting(false);
         return;
       }
