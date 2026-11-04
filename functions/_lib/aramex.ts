@@ -3,6 +3,8 @@
 //
 // Nothing here is called automatically: the endpoints in functions/api/shipping/ call it when an admin asks for it.
 // Secrets are never logged, and request/response bodies are never logged.
+import { CITY_ALIASES, SAUDI_CITIES } from "../../lib/cities";
+import { readExtras } from "../../lib/delivery";
 import { isLocalHost, type Env } from "./env";
 
 const BASE = {
@@ -17,6 +19,7 @@ export type ShippingOrder = {
   payment_gateway: string;
   shipping_status: string;
   tracking_number: string;
+  customer_notes?: string;
   customers: { full_name: string; email: string; phone: string; city: string; address: string } | null;
   order_items: { product_name: string; quantity: number }[];
 };
@@ -108,14 +111,8 @@ export function splitAddress(address: string, max = 50, lines = 3): string[] {
 // Only the cities Aramex's own samples spell out are mapped; any other city is sent as typed and Aramex answers with
 // its own message if it does not know it (the admin can then correct it). Extend after checking Aramex's city list.
 const CITY_MAP: Record<string, string> = {
-  الرياض: "Riyadh",
-  جدة: "Jeddah",
-  جده: "Jeddah",
-  الدمام: "Dammam",
-  مكة: "Makkah",
-  مكه: "Makkah",
-  "مكة المكرمة": "Makkah",
-  "مكه المكرمه": "Makkah",
+  ...Object.fromEntries(SAUDI_CITIES.map((c) => [c.ar, c.aramex])),
+  ...Object.fromEntries(Object.entries(CITY_ALIASES).map(([alias, ar]) => [alias, SAUDI_CITIES.find((c) => c.ar === ar)?.aramex ?? ar])),
 };
 export function toAramexCity(city: string): string {
   const c = (city ?? "").replace(/\s+/g, " ").trim();
@@ -159,14 +156,23 @@ const clientInfo = (env: Env) => ({
 
 const labelInfo = (env: Env) => ({ ReportID: num(env.ARAMEX_LABEL_REPORT_ID, 9729), ReportType: "URL" });
 
-function party(o: { name: string; phone: string; email: string; address: string; city: string; account: string; country: string }) {
+function party(o: { name: string; phone: string; email: string; address: string; city: string; account: string; country: string; point?: { lat: number; lng: number } | null }) {
   const [l1, l2 = "", l3 = ""] = splitAddress(o.address);
   const line1 = (l1 ?? "").length >= 4 ? l1 : `${l1 ?? ""} ${o.city}`.trim().padEnd(4, ".");
   const phone = normalizePhone(o.phone);
   return {
     Reference1: "",
     AccountNumber: o.account,
-    PartyAddress: { Line1: line1, Line2: l2, Line3: l3, City: o.city, PostCode: "", CountryCode: o.country, StateOrProvinceCode: "" },
+    PartyAddress: {
+      Line1: line1,
+      Line2: l2,
+      Line3: l3,
+      City: o.city,
+      PostCode: "",
+      CountryCode: o.country,
+      StateOrProvinceCode: "",
+      ...(o.point ? { Longitude: o.point.lng, Latitude: o.point.lat } : {}),
+    },
     Contact: {
       PersonName: limit(o.name, 50),
       CompanyName: limit(o.name, 50),
@@ -191,6 +197,7 @@ export function buildCreateShipmentRequest(env: Env, order: ShippingOrder, opts:
   const fallbackEmail = env.ARAMEX_SHIPPER_EMAIL as string;
   const email = EMAIL.test(c.email ?? "") && (c.email ?? "").length <= 50 ? c.email : fallbackEmail; // Aramex: email is mandatory
   const city = toAramexCity(opts.city || c.city);
+  const extras = readExtras(order.customer_notes ?? "");
 
   return {
     ClientInfo: clientInfo(env),
@@ -207,7 +214,7 @@ export function buildCreateShipmentRequest(env: Env, order: ShippingOrder, opts:
           account: env.ARAMEX_ACCOUNT_NUMBER as string,
           country,
         }),
-        Consignee: party({ name: c.full_name, phone: c.phone, email, address: c.address, city, account: "", country }),
+        Consignee: party({ name: c.full_name, phone: c.phone, email, address: c.address, city, account: "", country, point: extras.point }),
         ShippingDateTime: when,
         DueDate: when,
         Comments: "",
@@ -223,6 +230,8 @@ export function buildCreateShipmentRequest(env: Env, order: ShippingOrder, opts:
           PaymentOptions: "",
           Services: "",
           Items: [],
+          // The Saudi National Address short code, when the customer gave one (Aramex's own sample uses this form).
+          ...(extras.shortCode ? { AdditionalProperties: [{ CategoryName: "ShipmentProfile", Name: "AddressShortCode", Value: extras.shortCode }] } : {}),
         },
       },
     ],

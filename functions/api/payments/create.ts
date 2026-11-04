@@ -1,6 +1,7 @@
 // POST /api/payments/create — validates the cart, saves a pending order, starts the AlinmaPay payment.
 import { initiatePayment, formatAmount } from "../../_lib/alinmapay";
 import { requireEnv, type Env, type PagesFunction } from "../../_lib/env";
+import { buildNotes, isSaudiPoint, normalizeShortCode } from "../../../lib/delivery";
 import { saudiMobile } from "../../../lib/phone";
 import {
   HttpError,
@@ -39,6 +40,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       city: string;
       address: string;
       notes?: string;
+      shortCode?: string;
+      location?: { lat: number; lng: number };
     };
 
     const name = clean(body.customer?.name, 100);
@@ -50,6 +53,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, "invalid_details");
     // The Aramex courier must be able to call the customer.
     if (!saudiMobile(phone)) throw new HttpError(400, "invalid_phone");
+    // Optional extras that help the courier. A wrong short code is refused; a doubtful location is simply not kept.
+    const rawCode = clean(body.shortCode, 20);
+    const shortCode = rawCode ? normalizeShortCode(rawCode) : null;
+    if (rawCode && !shortCode) throw new HttpError(400, "invalid_short_code");
+    const point = isSaudiPoint(body.location) ? body.location : null;
 
     const { items, total } = priceItems(body.items);
 
@@ -61,7 +69,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     const orderNumber = newOrderNumber();
-    await createOrder(env, { orderNumber, name, email, phone, city, address, notes: clean(body.notes, 500), total, items, fingerprint });
+    await createOrder(env, { orderNumber, name, email, phone, city, address, notes: buildNotes(clean(body.notes, 500), shortCode, point), total, items, fingerprint });
 
     let payment;
     try {

@@ -6,8 +6,13 @@ import { useCart } from "@/components/CartProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatPrice } from "@/lib/i18n";
 import { cartItemOptions } from "@/lib/cart";
+import { SAUDI_CITIES } from "@/lib/cities";
+import { normalizeShortCode, type GeoPoint } from "@/lib/delivery";
 import { saudiMobile } from "@/lib/phone";
 import { saveLastOrder, type Order } from "@/lib/orders";
+
+const OTHER_CITY = "__other";
+const FIELD = "w-full border border-las-border bg-white px-3 py-2.5 text-sm outline-none focus:border-las-primary";
 
 export function CheckoutForm() {
   const router = useRouter();
@@ -17,7 +22,13 @@ export function CheckoutForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [city, setCity] = useState("");
+  const [citySel, setCitySel] = useState("");
+  const [cityOther, setCityOther] = useState("");
+  const [shortCode, setShortCode] = useState("");
+  const [point, setPoint] = useState<GeoPoint | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const [locError, setLocError] = useState(false);
+  const city = citySel === OTHER_CITY ? cityOther : citySel;
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -28,6 +39,23 @@ export function CheckoutForm() {
       <div className="py-16 text-center">
         <p className="text-las-muted">{t("emptyCartCheckout")}</p>
       </div>
+    );
+  }
+
+  function useMyLocation() {
+    setLocError(false);
+    if (!navigator.geolocation) return setLocError(true);
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setPoint({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocBusy(false);
+      },
+      () => {
+        setLocError(true);
+        setLocBusy(false);
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
     );
   }
 
@@ -50,6 +78,11 @@ export function CheckoutForm() {
       return;
     }
 
+    if (shortCode.trim() && !normalizeShortCode(shortCode)) {
+      setError(t("errorShortCode"));
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -63,6 +96,8 @@ export function CheckoutForm() {
           city: city.trim(),
           address: address.trim(),
           notes: notes.trim(),
+          shortCode: shortCode.trim(),
+          location: point ?? undefined,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -72,7 +107,15 @@ export function CheckoutForm() {
         return;
       }
       if (!res.ok || !data?.redirect?.url) {
-        setError(data?.error === "invalid_cart" ? t("errorCartInvalid") : data?.error === "invalid_phone" ? t("errorPhone") : t("errorPayment"));
+        setError(
+          data?.error === "invalid_cart"
+            ? t("errorCartInvalid")
+            : data?.error === "invalid_phone"
+              ? t("errorPhone")
+              : data?.error === "invalid_short_code"
+                ? t("errorShortCode")
+                : t("errorPayment"),
+        );
         setSubmitting(false);
         return;
       }
@@ -148,23 +191,67 @@ export function CheckoutForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1 block text-sm font-medium">{t("city")}</span>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                required
-                className="w-full border border-las-border px-3 py-2.5 text-sm outline-none focus:border-las-primary"
-              />
+              <select value={citySel} onChange={(e) => setCitySel(e.target.value)} required className={FIELD}>
+                <option value="" disabled>
+                  {t("selectCity")}
+                </option>
+                {SAUDI_CITIES.map((c) => (
+                  <option key={c.ar} value={c.ar}>
+                    {locale === "en" ? c.en : c.ar}
+                  </option>
+                ))}
+                <option value={OTHER_CITY}>{t("otherCity")}</option>
+              </select>
             </label>
+            {citySel === OTHER_CITY && (
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium">{t("otherCityLabel")}</span>
+                <input type="text" value={cityOther} onChange={(e) => setCityOther(e.target.value)} required maxLength={30} className={FIELD} />
+              </label>
+            )}
             <label className="block sm:col-span-2">
               <span className="mb-1 block text-sm font-medium">{t("address")}</span>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                rows={3}
+                rows={2}
                 required
-                className="w-full border border-las-border px-3 py-2.5 text-sm outline-none focus:border-las-primary"
+                maxLength={150}
+                placeholder={t("addressHint")}
+                className={FIELD}
               />
+            </label>
+            <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
+              <button
+                type="button"
+                onClick={useMyLocation}
+                disabled={locBusy}
+                className="rounded-sm border border-las-primary px-4 py-2 text-sm font-medium text-las-primary hover:bg-las-primary/5 disabled:opacity-60"
+              >
+                {locBusy ? t("locating") : point ? t("updateLocation") : t("useLocation")}
+              </button>
+              {point && (
+                <span className="text-sm text-green-800">
+                  ✓ {t("locationSaved")}{" "}
+                  <button type="button" onClick={() => setPoint(null)} className="underline">
+                    {t("removeLocation")}
+                  </button>
+                </span>
+              )}
+              {locError && <span className="text-sm text-red-600">{t("locationFailed")}</span>}
+            </div>
+            <label className="block sm:col-span-2">
+              <span className="mb-1 block text-sm font-medium">{t("shortCodeLabel")}</span>
+              <input
+                type="text"
+                value={shortCode}
+                onChange={(e) => setShortCode(e.target.value.toUpperCase())}
+                maxLength={9}
+                placeholder="RAAA1234"
+                dir="ltr"
+                className={FIELD}
+              />
+              <span className="mt-1 block text-xs text-las-muted">{t("shortCodeHint")}</span>
             </label>
           </div>
         </section>

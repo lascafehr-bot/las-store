@@ -201,7 +201,7 @@ export async function getOrderForEmail(env: Env, orderNumber: string): Promise<E
 export async function getOrderForShipping(env: Env, orderNumber: string): Promise<ShippingOrder | null> {
   if (!/^LAS[0-9]{8}[0-9A-F]{10}$/.test(orderNumber)) return null;
   const select =
-    "order_number,payment_status,payment_gateway,shipping_status,tracking_number," +
+    "order_number,payment_status,payment_gateway,shipping_status,tracking_number,customer_notes," +
     "customers(full_name,email,phone,city,address),order_items(product_name,quantity)";
   const rows = await rest<ShippingOrder[]>(env, `orders?order_number=eq.${orderNumber}&select=${select}&limit=1`);
   return rows?.[0] ?? null;
