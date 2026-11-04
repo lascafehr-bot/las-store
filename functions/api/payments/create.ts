@@ -1,6 +1,7 @@
 // POST /api/payments/create — validates the cart, saves a pending order, starts the AlinmaPay payment.
 import { initiatePayment, formatAmount } from "../../_lib/alinmapay";
 import { requireEnv, type Env, type PagesFunction } from "../../_lib/env";
+import { billingCity } from "../../../lib/cities";
 import { buildNotes, isSaudiPoint, normalizeShortCode } from "../../../lib/delivery";
 import { saudiMobile } from "../../../lib/phone";
 import {
@@ -73,7 +74,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     let payment;
     try {
-      payment = await initiatePaymentFor(env, { orderNumber, total, email, phone, city, address });
+      payment = await initiatePaymentFor(env, { orderNumber, total, email, phone, city: billingCity(city), address });
     } catch (err) {
       await failOrder(env, orderNumber, "INIT_FAILED").catch(() => undefined); // do not leave a stray pending order
       throw err;

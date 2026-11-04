@@ -39,3 +39,16 @@ export const CITY_ALIASES: Record<string, string> = {
   ابها: "أبها",
   الهفوف: "الأحساء",
 };
+
+/**
+ * The city name the payment gateway accepts as the billing city. AlinmaPay rejects Arabic names ("615: Invalid City"), so
+ * listed cities go as their English name, an English city typed by the customer goes as typed, and any other Arabic text
+ * falls back to Riyadh for this billing field only (the order and the delivery keep the city the customer chose).
+ */
+export function billingCity(city: string): string {
+  const c = (city ?? "").replace(/\s+/g, " ").trim();
+  const listed = SAUDI_CITIES.find((x) => x.ar === (CITY_ALIASES[c] ?? c));
+  if (listed) return listed.en;
+  if (/^[\x20-\x7e]+$/.test(c) && c) return c.slice(0, 30);
+  return "Riyadh";
+}

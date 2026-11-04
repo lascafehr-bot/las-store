@@ -138,3 +138,14 @@ test("the payment endpoint refuses a wrong short code before touching the databa
   assert.deepEqual(await res.json(), { error: "invalid_short_code" });
   assert.equal(calls, 0);
 });
+
+test("the payment gateway gets an English billing city (it rejects Arabic: 615 Invalid City)", () => {
+  for (const c of cities.SAUDI_CITIES) assert.equal(cities.billingCity(c.ar), c.en, c.ar);
+  assert.equal(cities.billingCity("جده"), "Jeddah");
+  assert.equal(cities.billingCity("مكه"), "Makkah");
+  assert.equal(cities.billingCity("  Riyadh "), "Riyadh");
+  assert.equal(cities.billingCity("Some Village"), "Some Village");
+  assert.equal(cities.billingCity("قرية غير معروفة"), "Riyadh", "unknown Arabic text never reaches the gateway");
+  assert.equal(cities.billingCity(""), "Riyadh");
+  assert.ok(/^[\x20-\x7e]+$/.test(cities.billingCity("مدينة".repeat(10))));
+});
