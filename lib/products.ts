@@ -410,19 +410,6 @@ export const PRODUCTS: Product[] = [
     ],
     featured: true,
   },
-  {
-    // TEMPORARY: a hidden 1 SAR item for the first real card payment. Remove it (and this comment) after the test.
-    id: "test-1sar",
-    slug: "test-1-sar",
-    name: "منتج تجريبي — ريال واحد",
-    nameEn: "Test item — 1 SAR",
-    description: "منتج للتجربة الداخلية فقط، لا يُشحن.",
-    descriptionEn: "Internal test item only. Not shipped.",
-    price: 1,
-    category: "merch",
-    image: "/products/las-mug/grey-face.webp",
-    hidden: true,
-  },
 ];
 
 export function isBeanProduct(product: Product): boolean {

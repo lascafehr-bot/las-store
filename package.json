@@ -14,7 +14,6 @@
     "test:aramex": "node --test tests/aramex.test.mjs",
     "test:health": "node --test tests/health.test.mjs",
     "test:phone": "node --test tests/phone.test.mjs",
-    "test:catalog": "node --test tests/catalog.test.mjs",
     "test:delivery": "node --test tests/delivery.test.mjs",
     "test:lascore": "node --test tests/lascore.test.mjs"
   },

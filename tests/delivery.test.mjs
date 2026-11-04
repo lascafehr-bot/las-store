@@ -125,7 +125,7 @@ test("the payment endpoint refuses a wrong short code before touching the databa
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items: [{ slug: "test-1-sar", quantity: 1 }],
+        items: [{ slug: "las-mug", quantity: 1 }],
         customer: { name: "Test", phone: "0554789837" },
         city: "الرياض",
         address: "حي الملقا",
