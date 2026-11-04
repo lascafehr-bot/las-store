@@ -10,7 +10,7 @@ import { getCategoryLabel } from "@/lib/i18n";
 import { PRODUCTS, sortBeanProducts, type Product } from "@/lib/products";
 
 function productsForCategory(category: CategoryId, locale: "ar" | "en"): Product[] {
-  const products = PRODUCTS.filter((p) => p.category === category);
+  const products = PRODUCTS.filter((p) => p.category === category && !p.hidden);
   if (category === "coffee") return sortBeanProducts(products, locale);
   return products;
 }

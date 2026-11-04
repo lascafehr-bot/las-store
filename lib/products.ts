@@ -49,6 +49,8 @@ export type Product = {
   weights?: BeanWeight[];
   featured?: boolean;
   badge?: string;
+  /** Not listed anywhere in the store; only reachable by its direct address (used for the 1 SAR payment test). */
+  hidden?: boolean;
 };
 
 export const BEAN_WEIGHTS: BeanWeight[] = [
@@ -408,6 +410,19 @@ export const PRODUCTS: Product[] = [
     ],
     featured: true,
   },
+  {
+    // TEMPORARY: a hidden 1 SAR item for the first real card payment. Remove it (and this comment) after the test.
+    id: "test-1sar",
+    slug: "test-1-sar",
+    name: "منتج تجريبي — ريال واحد",
+    nameEn: "Test item — 1 SAR",
+    description: "منتج للتجربة الداخلية فقط، لا يُشحن.",
+    descriptionEn: "Internal test item only. Not shipped.",
+    price: 1,
+    category: "merch",
+    image: "/products/las-mug/grey-face.webp",
+    hidden: true,
+  },
 ];
 
 export function isBeanProduct(product: Product): boolean {
@@ -419,11 +434,11 @@ export function getProductBySlug(slug: string): Product | undefined {
 }
 
 export function getProductsByCategory(category: CategoryId): Product[] {
-  return PRODUCTS.filter((p) => p.category === category);
+  return PRODUCTS.filter((p) => p.category === category && !p.hidden);
 }
 
 export function getFeaturedProducts(): Product[] {
-  return PRODUCTS.filter((p) => p.featured);
+  return PRODUCTS.filter((p) => p.featured && !p.hidden);
 }
 
 export function getAllProductSlugs(): string[] {
