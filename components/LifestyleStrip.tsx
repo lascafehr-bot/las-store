@@ -29,13 +29,16 @@ export function LifestyleStrip() {
           {t("ourWebsite")}
         </a>
       </div>
-      <div className="overflow-hidden" dir="ltr">
+      <div className="las-marquee-wrap overflow-hidden" dir="ltr">
         <div className="las-marquee flex w-max">
           {loop.map((src, index) => (
             <img
               key={`${src}-${index}`}
               src={src}
               alt=""
+              // The second copy only exists to make the slow scroll loop; it is hidden when the strip is swiped by hand.
+              data-dup={index >= PHOTOS.length ? "" : undefined}
+              aria-hidden={index >= PHOTOS.length ? true : undefined}
               className="h-64 w-56 shrink-0 object-cover sm:h-80 sm:w-72 lg:h-[22rem] lg:w-80"
             />
           ))}

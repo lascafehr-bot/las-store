@@ -77,8 +77,20 @@ img.las-header-logo.las-header-logo-sm {
   animation: las-marquee 40s linear infinite;
 }
 
+/* People who turned off motion (iPhone "Reduce Motion") get the strip as a normal swipeable row instead of a frozen one. */
 @media (prefers-reduced-motion: reduce) {
   .las-marquee {
     animation: none;
+  }
+  .las-marquee-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+  .las-marquee > img {
+    scroll-snap-align: start;
+  }
+  .las-marquee > img[data-dup] {
+    display: none;
   }
 }
