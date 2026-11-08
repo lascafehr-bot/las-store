@@ -153,7 +153,7 @@ export const PRODUCTS: Product[] = [
       "من مرتفعات همبيلا في إثيوبيا، تنمو حبوب هذا المحصول في بيئة مثالية وارتفاعات شاهقة، ما يمنحها طابعًا عطريًا مميزًا ونكهات فاكهية زاهية تجمع بين اليوسفي والياسمين والزبيب، بحموضة منعشة وقوام مستدير ونهاية حلوة طويلة.",
     descriptionEn:
       "From the Hambela highlands of Ethiopia, this coffee grows in an ideal setting at high altitude, with an aromatic character and bright fruit notes of mandarin, jasmine, and raisin, refreshing acidity, a round body, and a long sweet finish.",
-    price: 47,
+    price: 68,
     category: "coffee",
     image: "/products/hambela-natural/face.webp",
     images: [
@@ -174,8 +174,8 @@ export const PRODUCTS: Product[] = [
       },
     },
     weights: [
-      { id: "250g", label: "250غم", labelEn: "250g", price: 47 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 160 },
+      { id: "250g", label: "250غم", labelEn: "250g", price: 68 },
+      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 202 },
     ],
     featured: true,
   },
@@ -188,7 +188,7 @@ export const PRODUCTS: Product[] = [
       "من أراضي السلفادور، يأتي محصول لاماجادا بطابع غني يجمع بين حلاوة الكراميل وإيحاءات البندق المحمص، مع حمضية ناعمة وقوام ممتلئ يمنح الكوب عمقًا وتوازنًا واضحًا.",
     descriptionEn:
       "From El Salvador, La Majada has a rich character of caramel sweetness and roasted hazelnut, with soft acidity and a full body.",
-    price: 45,
+    price: 63,
     category: "coffee",
     image: "/products/salvador-la-majada/face.webp",
     images: [
@@ -212,8 +212,8 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "250 جم", en: "250g" },
     },
     weights: [
-      { id: "250g", label: "250غم", labelEn: "250g", price: 45 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 145 },
+      { id: "250g", label: "250غم", labelEn: "250g", price: 63 },
+      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 178 },
     ],
     featured: true,
   },
@@ -226,7 +226,7 @@ export const PRODUCTS: Product[] = [
       "من كولومبيا، يأتي محصول مونتي بطابع فاكهي واضح وحلاوة متوازنة، مع إيحاءات الكرز وقوام ممتلئ يمنح الكوب حضورًا غنيًا ومتناسقًا.\n\nتخضع الحبوب للمعالجة المجففة، مما يبرز حلاوتها الطبيعية ويعزز طابعها الفاكهي، لتقدم كوبًا غنيًا وممتدًا بتوازن لطيف بين الحلاوة والفاكهية.",
     descriptionEn:
       "From Colombia, Monte has a clear fruit character and balanced sweetness, with cherry notes and a full body.\n\nThe beans are naturally processed, which brings out their sweetness and fruit, for a rich cup with a gentle balance of sweetness and fruit.",
-    price: 49,
+    price: 70,
     category: "coffee",
     image: "/products/monte-natural/face.webp",
     images: [
@@ -250,8 +250,8 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "250 جم", en: "250g" },
     },
     weights: [
-      { id: "250g", label: "250غم", labelEn: "250g", price: 49 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 165 },
+      { id: "250g", label: "250غم", labelEn: "250g", price: 70 },
+      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 208 },
     ],
     featured: true,
   },
@@ -264,7 +264,7 @@ export const PRODUCTS: Product[] = [
       "من أعالي جبال اليمن، يأتي محصول يعكس تفرّد بيئته وطبيعة أرضه، بطابع غني ومتوازن يجمع بين حلاوة ناعمة وإيحاءات الفانيلا والفواكه الاستوائية، مع لمسات اللوز والزبيب ونهاية حلوة ممتدة.",
     descriptionEn:
       "From the high mountains of Yemen, a coffee that reflects its place: rich and balanced, with soft sweetness, vanilla and tropical fruit, almond and raisin, and a long sweet finish.",
-    price: 45,
+    price: 67,
     category: "coffee",
     image: "/products/yemeni-premium/face.webp",
     images: [
@@ -288,8 +288,7 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "125 جم", en: "125g" },
     },
     weights: [
-      { id: "125g", label: "125غم", labelEn: "125g", price: 45 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 265 },
+      { id: "125g", label: "125غم", labelEn: "125g", price: 67 },
     ],
     featured: true,
   },
@@ -302,7 +301,7 @@ export const PRODUCTS: Product[] = [
       "من قلب كولومبيا، يأتي هذا المحصول من سلالة Pink Bourbon بطابع فاكهي واضح، تبرز فيه حلاوة الفراولة ونضارة الخوخ، مع لمسات من الشعير وقوام ممتلئ ونهاية حلوة وممتدة.",
     descriptionEn:
       "From Colombia, this Pink Bourbon lot has a clear fruit character, with strawberry sweetness and peach freshness, barley notes, a full body, and a long sweet finish.",
-    price: 48,
+    price: 70,
     category: "coffee",
     image: "/products/colombia-strawberry/face.webp",
     images: [
@@ -330,8 +329,7 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "125 جم", en: "125g" },
     },
     weights: [
-      { id: "125g", label: "125غم", labelEn: "125g", price: 48 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 275 },
+      { id: "125g", label: "125غم", labelEn: "125g", price: 70 },
     ],
     featured: true,
   },
@@ -344,7 +342,7 @@ export const PRODUCTS: Product[] = [
       "من مرتفعات ويلا في كولومبيا، يأتي ميلو يلو بطابع فاكهي واضح وقوام ممتلئ. يُقطف بعناية، ثم يخضع لتخمير هوائي لمدة 12 ساعة، يليه تجفيف طبيعي بطيء لمدة 12–16 يومًا مع تقليب مستمر.\n\nوالنتيجة كوب غني بالحلاوة الطبيعية وإيحاءات الخوخ، بقوام ممتلئ وتوازن وامتداد مميز.",
     descriptionEn:
       "From the Huila highlands of Colombia, Melo Yelo has a clear fruit character and a full body. It is picked with care, then aerobically fermented for 12 hours, then slow-dried naturally for 12–16 days with constant turning.\n\nThe cup is rich in natural sweetness and peach, with a full body, balance, and a distinct finish.",
-    price: 43,
+    price: 61,
     category: "coffee",
     image: "/products/colombia-melo-yelo/face.webp",
     images: [
@@ -368,8 +366,7 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "125 جم", en: "125g" },
     },
     weights: [
-      { id: "125g", label: "125غم", labelEn: "125g", price: 43 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 225 },
+      { id: "125g", label: "125غم", labelEn: "125g", price: 61 },
     ],
     featured: true,
   },
@@ -382,7 +379,7 @@ export const PRODUCTS: Product[] = [
       "من أوغندا، يأتي محصول روينزوري بطابع غني ومتوازن، يجمع بين حلاوة العسل وإيحاءات الفواكه المجففة والكاكاو، مع قوام ممتلئ يمنح الكوب حضورًا واضحًا ونهاية متناسقة.",
     descriptionEn:
       "From Uganda, Rwenzori has a rich, balanced character of honey sweetness, dried fruit, and cacao, with a full body and a clear, even finish.",
-    price: 37,
+    price: 52,
     category: "coffee",
     image: "/products/uganda-rwenzori/face.webp",
     images: [
@@ -405,8 +402,8 @@ export const PRODUCTS: Product[] = [
       weight: { ar: "250 جم", en: "250g" },
     },
     weights: [
-      { id: "250g", label: "250غم", labelEn: "250g", price: 37 },
-      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 120 },
+      { id: "250g", label: "250غم", labelEn: "250g", price: 52 },
+      { id: "1kg", label: "1كغم", labelEn: "1kg", price: 151 },
     ],
     featured: true,
   },
