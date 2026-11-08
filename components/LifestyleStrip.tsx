@@ -8,7 +8,8 @@ const PHOTOS = [
   "/media/lifestyle-2.jpg?v=4",
   "/media/lifestyle-3.jpg?v=4",
   "/media/lifestyle-4.jpg?v=4",
-  "/media/lifestyle-5.jpg?v=4",
+  "/media/lifestyle-5.jpg?v=5",
+  "/media/lifestyle-6.jpg?v=5",
 ];
 
 export function LifestyleStrip() {
